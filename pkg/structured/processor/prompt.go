@@ -1,5 +1,8 @@
 package processor
 
+// ABOUTME: Schema-aware prompt enhancement with caching and templates
+// ABOUTME: Generates prompts that guide LLMs to produce valid JSON output
+
 import (
 	"fmt"
 	"strings"

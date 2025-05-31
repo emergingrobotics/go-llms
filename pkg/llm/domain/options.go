@@ -1,5 +1,8 @@
 package domain
 
+// ABOUTME: Common LLM generation options for controlling output behavior
+// ABOUTME: Includes settings for temperature, tokens, response format, and tools
+
 // Option configures LLM provider behavior
 type Option func(*ProviderOptions)
 

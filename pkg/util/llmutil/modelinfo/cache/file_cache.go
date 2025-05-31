@@ -1,5 +1,8 @@
 package cache
 
+// ABOUTME: File-based cache implementation for model information
+// ABOUTME: Persists model data to disk with TTL-based expiration
+
 import (
 	"encoding/json"
 	"os"

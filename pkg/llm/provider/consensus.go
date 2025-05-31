@@ -1,5 +1,8 @@
 package provider
 
+// ABOUTME: Consensus algorithms for multi-provider response validation
+// ABOUTME: Implements majority voting, similarity matching, and weighted consensus
+
 import (
 	"fmt"
 	"sort"

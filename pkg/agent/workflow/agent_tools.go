@@ -1,6 +1,9 @@
 // Package workflow provides agent workflow implementations.
 package workflow
 
+// ABOUTME: Manages tool registration and discovery for agent workflows
+// ABOUTME: Provides methods to add, remove, and retrieve available tools
+
 import (
 	"encoding/json"
 	"fmt"

@@ -1,5 +1,8 @@
 package json
 
+// ABOUTME: Specialized JSON marshaling for schema domain objects
+// ABOUTME: Implements custom encoding with buffer pooling for performance
+
 import (
 	"bytes"
 	"sync"

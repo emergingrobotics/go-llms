@@ -1,5 +1,8 @@
 package llmutil
 
+// ABOUTME: Manages available model inventory across all providers
+// ABOUTME: Provides discovery and caching of model capabilities and metadata
+
 import (
 	"fmt"
 	"os"
@@ -87,10 +90,8 @@ func GetAvailableModels(opts *GetAvailableModelsOptions) (*domain.ModelInventory
 				// Very unlikely, but as a last resort, use a relative path from where the binary might be.
 				// This might not be writable.
 				userCacheDir = filepath.Join(".", ".cache")
-				fmt.Printf("Warning: Could not get user cache directory (%v) or CWD (%v), using %s\n", err, CwdErr, userCacheDir)
 			} else {
 				userCacheDir = filepath.Join(cwd, ".cache")
-				fmt.Printf("Warning: Could not get user cache directory: %v. Using local .cache dir: %s\n", err, userCacheDir)
 			}
 		}
 		options.CachePath = filepath.Join(userCacheDir, defaultSubDir, defaultCacheFile)
@@ -104,11 +105,8 @@ func GetAvailableModels(opts *GetAvailableModelsOptions) (*domain.ModelInventory
 				return &loadedInventory.Inventory, nil
 			}
 			// Cache is expired or invalid, proceed to fetch fresh data
-			fmt.Printf("Cache found but expired or invalid at %s\n", options.CachePath)
-		} else if err != os.ErrNotExist {
-			// Log error if it's something other than cache file not existing
-			fmt.Printf("Error loading cache from %s: %v. Fetching fresh data.\n", options.CachePath, err)
 		}
+		// For any error (including non-existent files), we proceed to fetch fresh data
 		// If os.ErrNotExist, that's fine, we just need to fetch.
 	}
 
@@ -121,17 +119,15 @@ func GetAvailableModels(opts *GetAvailableModelsOptions) (*domain.ModelInventory
 		if freshInventoryData == nil || len(freshInventoryData.Models) == 0 {
 			return nil, fmt.Errorf("failed to aggregate model data: %w", err)
 		}
-		// Log the error but continue with partial results
-		fmt.Printf("Warning: Some providers failed during model aggregation: %v\n", err)
+		// Continue with partial results
 	}
 
 	// If fetching was successful and caching is enabled, save the fresh data.
 	if options.UseCache && freshInventoryData != nil {
 		// Ensure the directory exists
 		cacheDir := filepath.Dir(options.CachePath)
-		if mkdirErr := os.MkdirAll(cacheDir, defaultCacheDirPerm); mkdirErr != nil {
-			fmt.Printf("Warning: Failed to create cache directory at %s: %v\n", cacheDir, mkdirErr)
-		}
+		// Create cache directory - ignore errors as cache is best-effort
+		_ = os.MkdirAll(cacheDir, defaultCacheDirPerm)
 
 		// Create the cache data
 		cachedDataToSave := domain.CachedModelInventory{
@@ -139,13 +135,8 @@ func GetAvailableModels(opts *GetAvailableModelsOptions) (*domain.ModelInventory
 			FetchedAt: time.Now(),
 		}
 
-		// Save the inventory directly to the cache
-		if saveErr := cache.SaveInventory(&cachedDataToSave, options.CachePath); saveErr != nil {
-			// Log error during saving but do not fail the whole operation.
-			fmt.Printf("Warning: Failed to save fresh model inventory to cache at %s: %v\n", options.CachePath, saveErr)
-		} else {
-			fmt.Printf("Successfully saved fresh model inventory to cache at %s\n", options.CachePath)
-		}
+		// Save the inventory - ignore errors as cache is best-effort
+		_ = cache.SaveInventory(&cachedDataToSave, options.CachePath)
 	}
 
 	return freshInventoryData, nil

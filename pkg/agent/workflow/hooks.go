@@ -1,5 +1,8 @@
 package workflow
 
+// ABOUTME: Provides hook system for agent workflows including built-in logging and metrics hooks
+// ABOUTME: Allows monitoring and customization of agent behavior through lifecycle callbacks
+
 import (
 	"context"
 	"encoding/json"

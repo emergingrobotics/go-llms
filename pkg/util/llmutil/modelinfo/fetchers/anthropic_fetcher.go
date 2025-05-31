@@ -1,5 +1,8 @@
 package fetchers
 
+// ABOUTME: Anthropic API client for fetching available Claude models
+// ABOUTME: Retrieves model information and capabilities from Anthropic
+
 import (
 	"github.com/lexlapax/go-llms/pkg/util/llmutil/modelinfo/domain"
 )

@@ -1,5 +1,8 @@
 package multi_provider
 
+// ABOUTME: Mock provider implementation for multi-provider testing
+// ABOUTME: Simulates various provider behaviors and failure scenarios
+
 import (
 	"context"
 

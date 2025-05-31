@@ -133,7 +133,9 @@ func (p *NewProvider) StreamMessage(ctx context.Context, messages []domain.Messa
 
 ### Implement Error Handling
 
-Create provider-specific error handling that maps the provider's API errors to the standard error types defined in `pkg/llm/domain/errors.go`. This ensures consistent error handling across all providers:
+Create provider-specific error handling that maps the provider's API errors to the standard error types defined in `pkg/llm/domain/errors.go`. This ensures consistent error handling across all providers.
+
+**Important**: Provider implementations should NOT log errors. Instead, return errors with appropriate context using `fmt.Errorf()`. The calling application will decide how to handle and log errors.
 
 ```go
 // Handle specific provider API errors
@@ -518,6 +520,10 @@ Implement the example application in `cmd/examples/newprovider/main.go`:
 
 ```go
 package main
+
+// Note: Example applications use the log package for output.
+// The provider implementation itself (in pkg/llm/provider/) should NOT log,
+// but return errors with context instead.
 
 import (
 	"context"

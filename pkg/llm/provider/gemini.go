@@ -1,3 +1,6 @@
+// ABOUTME: Google Gemini provider implementation for generative AI API
+// ABOUTME: Supports text/multimodal messages, streaming, and safety settings
+
 package provider
 
 import (
@@ -257,7 +260,7 @@ func (p *GeminiProvider) Generate(ctx context.Context, prompt string, options ..
 	}
 	response, err := p.GenerateMessage(ctx, messages, options...)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("gemini: failed to generate message: %w", err)
 	}
 	return response.Content, nil
 }
@@ -266,7 +269,7 @@ func (p *GeminiProvider) Generate(ctx context.Context, prompt string, options ..
 func (p *GeminiProvider) GenerateMessage(ctx context.Context, messages []domain.Message, options ...domain.Option) (domain.Response, error) {
 	// Validate content types
 	if err := p.validateContentTypesForGemini(messages); err != nil {
-		return domain.Response{}, err
+		return domain.Response{}, fmt.Errorf("gemini: failed to validate content types: %w", err)
 	}
 
 	// Apply options
@@ -397,7 +400,7 @@ func (p *GeminiProvider) GenerateWithSchema(ctx context.Context, prompt string, 
 	// Try to extract JSON from the response using optimized extractor
 	jsonStr := processor.ExtractJSON(response)
 	if jsonStr == "" {
-		return nil, fmt.Errorf("response does not contain valid JSON")
+		return nil, fmt.Errorf("gemini provider: response does not contain valid JSON, content: %s", response)
 	}
 
 	// Parse the JSON into a map - use optimized JSON unmarshaling
@@ -422,7 +425,7 @@ func (p *GeminiProvider) Stream(ctx context.Context, prompt string, options ...d
 func (p *GeminiProvider) StreamMessage(ctx context.Context, messages []domain.Message, options ...domain.Option) (domain.ResponseStream, error) {
 	// Validate content types
 	if err := p.validateContentTypesForGemini(messages); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("gemini: failed to validate content types for streaming: %w", err)
 	}
 
 	// Apply options

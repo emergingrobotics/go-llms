@@ -1,5 +1,8 @@
 package main
 
+// ABOUTME: Example demonstrating schema validation and structured output extraction
+// ABOUTME: Shows how to define schemas and validate LLM responses against them
+
 import (
 	"encoding/json"
 	"log"

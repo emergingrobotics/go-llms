@@ -3,6 +3,9 @@
 
 package main
 
+// ABOUTME: Example demonstrating performance profiling of LLM operations
+// ABOUTME: Shows how to capture CPU and memory profiles for optimization
+
 import (
 	"context"
 	"log"
@@ -13,9 +16,22 @@ import (
 	"github.com/lexlapax/go-llms/pkg/util/profiling"
 )
 
+// logAdapter adapts standard log package to profiling.Logger interface
+type logAdapter struct{}
+
+func (logAdapter) Printf(format string, v ...interface{}) {
+	log.Printf(format, v...)
+}
+
+func (logAdapter) Errorf(format string, v ...interface{}) {
+	log.Printf("ERROR: "+format, v...)
+}
+
 // Example demonstrating the use of the profiling utilities in the Go-LLMs project
 // Compile this separately with: go build -o bin/profile_example cmd/examples/metrics/profile_example.go
 func main() {
+	// Set up logging for profiling package
+	profiling.SetLogger(logAdapter{})
 	// Enable profiling via environment variable
 	os.Setenv("GO_LLMS_ENABLE_PROFILING", "1")
 

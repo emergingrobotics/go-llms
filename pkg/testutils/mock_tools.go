@@ -1,5 +1,8 @@
 package testutils
 
+// ABOUTME: Mock tool implementations for agent testing
+// ABOUTME: Includes configurable tools with success/failure modes
+
 import (
 	"context"
 	"fmt"

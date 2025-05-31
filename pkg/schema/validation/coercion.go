@@ -1,5 +1,8 @@
 package validation
 
+// ABOUTME: Type coercion utilities for converting values to expected types
+// ABOUTME: Handles string-to-number, boolean, date, UUID, and format conversions
+
 import (
 	"strconv"
 	"strings"

@@ -1,6 +1,9 @@
 // Package processor implements structured output processing functionality
 package processor
 
+// ABOUTME: Main processor for extracting and validating structured LLM outputs
+// ABOUTME: Parses JSON from responses and validates against schemas
+
 import (
 	"encoding/json"
 	"fmt"
@@ -28,7 +31,7 @@ func (p *StructuredProcessor) Process(schema *schemaDomain.Schema, output string
 	jsonStr := ExtractJSON(output)
 
 	if jsonStr == "" {
-		return nil, fmt.Errorf("no valid JSON found in the output")
+		return nil, fmt.Errorf("no valid JSON found in output (length: %d chars)", len(output))
 	}
 
 	// Parse the JSON
@@ -55,13 +58,13 @@ func (p *StructuredProcessor) Process(schema *schemaDomain.Schema, output string
 func (p *StructuredProcessor) ProcessTyped(schema *schemaDomain.Schema, output string, target interface{}) error {
 	// Check if target is a pointer
 	if target == nil {
-		return fmt.Errorf("target cannot be nil")
+		return fmt.Errorf("ProcessTyped: target parameter cannot be nil, expected pointer to struct")
 	}
 
 	// Extract and validate JSON from the output
 	result, err := p.Process(schema, output)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to process structured output: %w", err)
 	}
 
 	// Convert the result to JSON

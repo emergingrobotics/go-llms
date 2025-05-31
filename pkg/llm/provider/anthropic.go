@@ -1,5 +1,8 @@
 package provider
 
+// ABOUTME: Anthropic Claude provider implementation for messages API
+// ABOUTME: Supports text/multimodal messages, streaming, and system prompts
+
 import (
 	"bufio"
 	"bytes"
@@ -81,7 +84,7 @@ func (p *AnthropicProvider) Generate(ctx context.Context, prompt string, options
 	}
 	response, err := p.GenerateMessage(ctx, messages, options...)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("anthropic: failed to generate message: %w", err)
 	}
 	return response.Content, nil
 }
@@ -238,7 +241,7 @@ func (p *AnthropicProvider) buildAnthropicRequestBody(
 func (p *AnthropicProvider) GenerateMessage(ctx context.Context, messages []domain.Message, options ...domain.Option) (domain.Response, error) {
 	// Validate content types
 	if err := p.validateContentTypesForAnthropic(messages); err != nil {
-		return domain.Response{}, err
+		return domain.Response{}, fmt.Errorf("anthropic: failed to validate content types: %w", err)
 	}
 
 	// Apply options
@@ -264,7 +267,7 @@ func (p *AnthropicProvider) GenerateMessage(ctx context.Context, messages []doma
 	url := fmt.Sprintf("%s/v1/messages", p.baseURL)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, requestBuffer)
 	if err != nil {
-		return domain.Response{}, fmt.Errorf("failed to create request: %w", err)
+		return domain.Response{}, fmt.Errorf("anthropic provider: failed to create request to %s: %w", url, err)
 	}
 
 	// Set headers
@@ -329,7 +332,7 @@ func (p *AnthropicProvider) GenerateWithSchema(ctx context.Context, prompt strin
 	// Try to extract JSON from the response using optimized extractor
 	jsonStr := processor.ExtractJSON(response)
 	if jsonStr == "" {
-		return nil, fmt.Errorf("response does not contain valid JSON")
+		return nil, fmt.Errorf("anthropic provider: response does not contain valid JSON, content: %s", response)
 	}
 
 	// Parse the JSON into a map - use optimized JSON unmarshaling
@@ -354,7 +357,7 @@ func (p *AnthropicProvider) Stream(ctx context.Context, prompt string, options .
 func (p *AnthropicProvider) StreamMessage(ctx context.Context, messages []domain.Message, options ...domain.Option) (domain.ResponseStream, error) {
 	// Validate content types
 	if err := p.validateContentTypesForAnthropic(messages); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("anthropic: failed to validate content types for streaming: %w", err)
 	}
 
 	// Apply options

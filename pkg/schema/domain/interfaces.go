@@ -1,6 +1,9 @@
 // Package domain defines the core domain models and interfaces for schema validation.
 package domain
 
+// ABOUTME: Core schema domain models and interfaces for JSON validation
+// ABOUTME: Defines Schema, Property, and validation contract types
+
 // Schema represents a validation schema for structured data
 type Schema struct {
 	Type                 string              `json:"type"`

@@ -506,8 +506,10 @@ When using the library in client code, follow these best practices:
    - Retry with different model parameters
    - Use cached results as a last resort
 
-6. **Log Detailed Errors**: Log detailed error information for debugging:
+6. **Log Detailed Errors (in your application code)**: Log detailed error information for debugging:
    ```go
+   // Note: This logging should be done in your application code, not in library code.
+   // The go-llms library returns errors with context but does not log them.
    if err != nil {
        log.Printf("LLM error: %v (%T)", err, err)
        

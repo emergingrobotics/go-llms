@@ -35,7 +35,6 @@ coverage.html
 #CLAUDE.md
 
 # Debug files
-debug
 __debug_bin
 *.log
 *.prof

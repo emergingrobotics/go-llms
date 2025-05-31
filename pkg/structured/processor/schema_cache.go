@@ -1,5 +1,8 @@
 package processor
 
+// ABOUTME: Thread-safe cache for schema JSON with expiration and metrics
+// ABOUTME: Reduces repeated JSON marshaling of schemas for better performance
+
 import (
 	"sync"
 	"time"

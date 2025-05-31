@@ -1,6 +1,9 @@
 // Package llmutil provides utility functions for common LLM operations.
 package llmutil
 
+// ABOUTME: Factory functions for creating provider-specific options
+// ABOUTME: Enables flexible option composition from various sources
+
 import (
 	"net/http"
 	"os"

@@ -1,5 +1,8 @@
 package main
 
+// ABOUTME: CLI configuration and command-line argument parsing using stdlib flags
+// ABOUTME: Handles configuration from files, environment variables, and command-line arguments
+
 import (
 	"context"
 	"fmt"

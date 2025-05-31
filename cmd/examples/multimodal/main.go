@@ -3,6 +3,9 @@
 
 package main
 
+// ABOUTME: Example demonstrating multimodal content support with images and files
+// ABOUTME: Shows how to send images and other media to LLM providers
+
 import (
 	"context"
 	"encoding/base64"

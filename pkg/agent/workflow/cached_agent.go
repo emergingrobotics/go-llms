@@ -1,6 +1,9 @@
 // Package workflow provides agent workflow implementations.
 package workflow
 
+// ABOUTME: Provides caching layer for agent responses to improve performance
+// ABOUTME: Implements response caching with configurable TTL and eviction policies
+
 import (
 	"context"
 	"encoding/json"

@@ -1,5 +1,8 @@
 package modelinfo
 
+// ABOUTME: Service orchestrator for model information fetching and caching
+// ABOUTME: Coordinates between providers to maintain model inventory
+
 import (
 	"fmt"
 	"net/http"
@@ -54,7 +57,6 @@ func (s *ModelInfoService) AggregateModels() (*domain.ModelInventory, error) {
 	openAIModels, err := s.openAIFetcher.FetchModels()
 	if err != nil {
 		errMsg := fmt.Sprintf("Error fetching OpenAI models: %v", err)
-		fmt.Printf("%s\n", errMsg) // Placeholder for actual logging
 		fetcherErrors = append(fetcherErrors, errMsg)
 	} else {
 		allModels = append(allModels, openAIModels...)
@@ -64,7 +66,6 @@ func (s *ModelInfoService) AggregateModels() (*domain.ModelInventory, error) {
 	googleModels, err := s.googleFetcher.FetchModels()
 	if err != nil {
 		errMsg := fmt.Sprintf("Error fetching Google models: %v", err)
-		fmt.Printf("%s\n", errMsg) // Placeholder for actual logging
 		fetcherErrors = append(fetcherErrors, errMsg)
 	} else {
 		allModels = append(allModels, googleModels...)
@@ -76,7 +77,6 @@ func (s *ModelInfoService) AggregateModels() (*domain.ModelInventory, error) {
 		// This fetcher currently returns hardcoded data, so an error is unexpected
 		// unless the method signature changes or an internal issue occurs.
 		errMsg := fmt.Sprintf("Error fetching Anthropic models: %v", err)
-		fmt.Printf("%s\n", errMsg) // Placeholder for actual logging
 		fetcherErrors = append(fetcherErrors, errMsg)
 	} else {
 		allModels = append(allModels, anthropicModels...)

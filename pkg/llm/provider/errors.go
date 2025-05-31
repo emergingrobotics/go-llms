@@ -1,5 +1,8 @@
 package provider
 
+// ABOUTME: Provider-specific error types and handling utilities
+// ABOUTME: Standardizes error reporting across different LLM providers
+
 import (
 	"errors"
 	"fmt"

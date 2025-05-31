@@ -1,5 +1,8 @@
 package main
 
+// ABOUTME: Example demonstrating convenience wrapper functions from llmutil
+// ABOUTME: Shows simplified provider initialization and structured output extraction
+
 import (
 	"context"
 	"encoding/json"

@@ -1,6 +1,9 @@
 // Package workflow provides agent workflow implementations.
 package workflow
 
+// ABOUTME: Core agent implementation that orchestrates LLM interactions with tool calling capabilities
+// ABOUTME: Manages conversation flow, tool execution, and provides hooks for monitoring and customization
+
 import (
 	"context"
 	"encoding/json"
@@ -143,7 +146,7 @@ func (a *DefaultAgent) run(ctx context.Context, input string, schema *sdomain.Sc
 		// Enhance the prompt with schema information
 		enhancedPrompt, err := processor.EnhancePromptWithSchema(input, schema)
 		if err != nil {
-			return nil, fmt.Errorf("failed to enhance prompt with schema: %w", err)
+			return nil, fmt.Errorf("agent: failed to enhance prompt with schema: %w", err)
 		}
 		prompt = enhancedPrompt
 	}
@@ -183,7 +186,7 @@ func (a *DefaultAgent) run(ctx context.Context, input string, schema *sdomain.Sc
 		a.notifyAfterGenerate(ctx, resp, genErr)
 
 		if genErr != nil {
-			return nil, fmt.Errorf("LLM generation failed: %w", genErr)
+			return nil, fmt.Errorf("agent: LLM generation failed: %w", genErr)
 		}
 
 		// If we're doing structured output, the response is in finalResponse
@@ -986,7 +989,7 @@ func (a *UnoptimizedDefaultAgent) run(ctx context.Context, input string, schema 
 		// Enhance the prompt with schema information
 		enhancedPrompt, err := processor.EnhancePromptWithSchema(input, schema)
 		if err != nil {
-			return nil, fmt.Errorf("failed to enhance prompt with schema: %w", err)
+			return nil, fmt.Errorf("agent: failed to enhance prompt with schema: %w", err)
 		}
 		prompt = enhancedPrompt
 	}
@@ -1026,7 +1029,7 @@ func (a *UnoptimizedDefaultAgent) run(ctx context.Context, input string, schema 
 		a.notifyAfterGenerate(ctx, resp, genErr)
 
 		if genErr != nil {
-			return nil, fmt.Errorf("LLM generation failed: %w", genErr)
+			return nil, fmt.Errorf("agent: LLM generation failed: %w", genErr)
 		}
 
 		// If we're doing structured output, the response is in finalResponse

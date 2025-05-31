@@ -1,6 +1,9 @@
 // Package testutils provides testing utilities for the Go-LLMs library.
 package testutils
 
+// ABOUTME: Mock LLM provider implementations for testing
+// ABOUTME: Provides deterministic responses and failure simulation
+
 import (
 	"context"
 

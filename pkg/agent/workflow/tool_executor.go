@@ -1,6 +1,9 @@
 // Package workflow provides agent workflow implementations.
 package workflow
 
+// ABOUTME: Handles tool execution and parameter validation for agent workflows
+// ABOUTME: Manages concurrent tool calls and result aggregation
+
 import (
 	"context"
 	"encoding/json"

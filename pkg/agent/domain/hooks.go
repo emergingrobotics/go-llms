@@ -1,5 +1,8 @@
 package domain
 
+// ABOUTME: Defines hook interfaces for monitoring and intercepting agent operations
+// ABOUTME: Enables logging, metrics collection, and debugging of agent workflows
+
 import (
 	"context"
 

@@ -1,6 +1,9 @@
 // Package workflow provides agent workflow implementations.
 package workflow
 
+// ABOUTME: LRU cache implementation for storing agent responses
+// ABOUTME: Provides thread-safe caching with automatic expiration
+
 import (
 	"crypto/sha256"
 	"encoding/hex"

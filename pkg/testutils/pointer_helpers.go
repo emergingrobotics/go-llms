@@ -1,5 +1,8 @@
 package testutils
 
+// ABOUTME: Helper functions for creating pointers to primitive types
+// ABOUTME: Simplifies test data setup by avoiding inline pointer creation
+
 // IntPtr returns a pointer to an int value
 func IntPtr(i int) *int {
 	return &i

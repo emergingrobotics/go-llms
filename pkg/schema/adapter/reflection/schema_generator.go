@@ -1,5 +1,8 @@
 package reflection
 
+// ABOUTME: Reflection-based JSON schema generator from Go types
+// ABOUTME: Automatically creates validation schemas from struct definitions
+
 import (
 	"fmt"
 	"reflect"

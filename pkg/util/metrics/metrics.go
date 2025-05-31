@@ -3,6 +3,9 @@
 // ratio counters, and timers, all with thread-safe operations.
 package metrics
 
+// ABOUTME: Core metrics collection framework for performance monitoring
+// ABOUTME: Provides thread-safe counters, gauges, timers, and ratio tracking
+
 import (
 	"sync"
 	"sync/atomic"

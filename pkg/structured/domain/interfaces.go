@@ -1,6 +1,9 @@
 // Package domain defines core domain models and interfaces for structured LLM outputs.
 package domain
 
+// ABOUTME: Core interfaces for structured output processing from LLMs
+// ABOUTME: Defines Processor and PromptEnhancer contracts
+
 import (
 	schemaDomain "github.com/lexlapax/go-llms/pkg/schema/domain"
 )

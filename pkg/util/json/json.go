@@ -1,6 +1,9 @@
 // Package json provides an optimized JSON implementation with multiple backends
 package json
 
+// ABOUTME: JSON marshaling utilities with optimization hints
+// ABOUTME: Provides efficient JSON encoding/decoding for schema objects
+
 import (
 	"bytes"
 	"io"

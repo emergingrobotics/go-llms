@@ -93,3 +93,27 @@
     - [x] Update README files with logging documentation links
     - [x] Add logging section to CLAUDE.md
     - [x] Create CONTRIBUTING.md with logging guidelines
+  - [x] Phase 2: Standardize Examples (completed)
+    - [x] Convert fmt-only examples to use `log` package:
+      - [x] gemini/main.go (completed)
+      - [x] modelinfo/main.go (CLI tool - correctly uses fmt pattern)
+      - [x] multi/main.go (completed)
+      - [x] openai_api_compatible_providers/main.go (completed)
+      - [x] profiling/main.go (completed)
+      - [x] provider_options/main.go (completed)
+      - [x] schema/main.go (completed)
+    - [x] Ensure agent examples properly demonstrate slog with LoggingHook (already done)
+    - [x] Verify no mixing of log/fmt for logging in the same example
+      - Found 6 files that mix approaches: agent, coercion, consensus, convenience, metrics, multimodal
+      - These are agent examples that use slog but also fmt, which is acceptable per docs
+  - [x] Phase 3: Debug Infrastructure (completed)
+    - [x] Create debug build tags for verbose logging
+    - [x] Convert commented debug prints in param_cache.go to conditional compilation
+    - [x] Document how to build with debug logging enabled
+    - [x] Restructured Makefile for developer friendliness with debug support
+  - [x] Phase 4: Core Library Cleanup (completed)
+    - [x] Ensure no direct logging in pkg/ (except hooks)
+    - [x] Improve error messages with more context
+    - [x] Add error wrapping where beneficial
+    - [x] Verify thread safety in all logging paths
+    - [x] Update documentation and doc cleanup related to logging throughout all docs in codebase

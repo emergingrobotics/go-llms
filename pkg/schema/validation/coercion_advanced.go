@@ -1,5 +1,8 @@
 package validation
 
+// ABOUTME: Advanced type coercion for complex formats and data types
+// ABOUTME: Handles dates, durations, URLs, emails, IPs, base64, and more
+
 import (
 	"encoding/base64"
 	"encoding/json"

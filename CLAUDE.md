@@ -9,9 +9,16 @@ Go-LLMs is a Go library that provides a unified interface to interact with vario
 **Current Version**: v0.2.6 (Released January 30, 2025)
 
 **Recent Updates**:
-- Added comprehensive logging documentation at `docs/technical/logging.md`
-- Created `CONTRIBUTING.md` with contribution guidelines
-- Completed Phase 1 of logging strategy implementation (documentation)
+- **Completed All Phases of Logging Strategy Implementation** (January 30, 2025)
+  - Phase 1: Documentation - Created comprehensive logging documentation at `docs/technical/logging.md`
+  - Phase 2: Standardized Examples - Converted all examples to use consistent logging patterns
+  - Phase 3: Debug Infrastructure - Added debug build tags and conditional compilation support
+  - Phase 4: Core Library Cleanup - Removed all direct logging from pkg/, improved error messages with context
+- Added ABOUTME comments to all Go source files for better code documentation
+- Created `CONTRIBUTING.md` with contribution guidelines including logging best practices
+- Fixed all linting errors (removed empty branches in model_inventory.go)
+- Added Logger interface to profiling package to support optional logging without forcing it on users
+- All make targets tested and working (36.7% test coverage)
 
 ## Common Development Commands
 
@@ -19,6 +26,10 @@ Go-LLMs is a Go library that provides a unified interface to interact with vario
 ```bash
 # Build the main binary
 make build
+
+# Build with debug logging enabled
+make build-debug
+# Then run with: GO_LLMS_DEBUG=all ./bin/go-llms-debug
 
 # Build all example binaries
 make build-examples
@@ -31,6 +42,10 @@ make build-example EXAMPLE=simple
 ```bash
 # Run all tests excluding integration, multi-provider, stress tests
 make test
+
+# Run tests with debug logging enabled
+make test-debug
+GO_LLMS_DEBUG=param_cache make test-debug
 
 # Run all tests including integration tests (requires API keys)
 make test-all
@@ -255,6 +270,26 @@ The codebase follows specific logging patterns to maintain performance and give 
 
 See [docs/technical/logging.md](docs/technical/logging.md) for the complete logging strategy.
 
+## Debug Logging
+
+The codebase includes a debug logging infrastructure that compiles to zero-overhead no-ops in production:
+
+```bash
+# Build with debug support
+make build-debug
+
+# Run tests with debug logging
+make test-debug
+
+# Enable debug logging for specific components
+GO_LLMS_DEBUG=param_cache,schema make test-debug
+
+# Enable all debug logging
+GO_LLMS_DEBUG=all make test-debug
+```
+
+Debug logging is implemented using build tags, so there's no performance impact when not enabled. The debug infrastructure is in `pkg/internal/debug/`.
+
 ## Current Development Focus
 
 Based on the TODO.md file, these are the current development priorities:
@@ -263,22 +298,38 @@ Based on the TODO.md file, these are the current development priorities:
    - Add Model Context Protocol Client support for Agents
    - Add Model Context Protocol Server support for Workflows or Agents
    
-2. **Performance Optimizations**:
+2. **Architecture & Built-in Components** (Next Priority):
+   - P1: Analyze structure for exposing built-in tools, agents, and workflows
+   - P2: Build useful built-in tools (research and implementation)
+   - P3: Build useful built-in agents with and without tools
+   - P4: Build useful multi-agent workflows
+   
+3. **Performance Optimizations** (Marked for REVISIT):
    - Create benchmark harness for A/B testing optimizations
    - Implement visualization for memory allocation patterns
    - Create real-world test scenarios for end-to-end performance
    - Advanced optimizations including adaptive channel buffer sizing, pool prewarming, etc.
    - Performance validation with metrics and benchmarks
    
-3. **Final Documentation and Release**:
-   - Fix identified cross-link issues (path inconsistencies, broken links)
-   - Perform final consistency check across all documentation
+4. **Final Documentation and Release**:
+   - Fix identified cross-link issues (path inconsistencies, broken links) - REVISIT
+   - Perform final consistency check across all documentation - REVISIT
    - API refinement based on usage feedback
    - Final review and preparation for stable release
    
 ## Completed Development Items
 
-1. **Dependency Reduction Journey (Completed in v0.2.4)**:
+1. **Comprehensive Logging Strategy (Completed in v0.2.6)**:
+   - Created comprehensive logging documentation at docs/technical/logging.md
+   - Standardized all examples to use consistent logging patterns
+   - Added debug infrastructure with build tags and GO_LLMS_DEBUG support
+   - Removed all direct logging from library code (pkg/)
+   - Improved error messages with context and proper error wrapping
+   - Added Logger interface to profiling package for optional logging
+   - Verified thread safety in all logging paths
+   - Added ABOUTME comments to all Go source files
+   
+2. **Dependency Reduction Journey (Completed in v0.2.4)**:
    - Successfully migrated from viper/cobra to koanf/kong, then to stdlib
    - Reduced binary size from 14MB to 6.3MB (55% total reduction)  
    - Documentation at docs/technical/dependency_reduction.md

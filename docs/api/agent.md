@@ -172,7 +172,7 @@ const (
 )
 ```
 
-The `LoggingHook` provides logging for agent operations, with configurable detail levels.
+The `LoggingHook` provides optional logging for agent operations, with configurable detail levels. This hook is not included by default - you must explicitly add it to your agent if you want logging functionality.
 
 #### MetricsHook
 

@@ -1,6 +1,9 @@
 // Package provider implements various LLM providers.
 package provider
 
+// ABOUTME: Multi-provider orchestration for concurrent/fallback LLM requests
+// ABOUTME: Implements fastest-first, primary-fallback, and consensus strategies
+
 import (
 	"context"
 	"encoding/json"
@@ -650,7 +653,7 @@ func (mp *MultiProvider) selectMessageResult(results []fallbackResult) (domain.R
 		responsePool := domain.GetResponsePool()
 		consensusText, err := selectConsensusTextResult(results)
 		if err != nil {
-			return domain.Response{}, err
+			return domain.Response{}, fmt.Errorf("multi-provider: failed to select consensus result: %w", err)
 		}
 		return responsePool.NewResponse(consensusText), nil
 	}

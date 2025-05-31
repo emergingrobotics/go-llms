@@ -1,5 +1,8 @@
 package main
 
+// ABOUTME: Example demonstrating multi-provider strategies for LLM requests
+// ABOUTME: Shows fastest, primary, and consensus strategies for provider orchestration
+
 import (
 	"context"
 	"fmt"

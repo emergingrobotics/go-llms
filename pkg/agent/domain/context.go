@@ -1,6 +1,9 @@
 // Package domain defines the core domain models and interfaces for agents.
 package domain
 
+// ABOUTME: Defines the RunContext type for dependency injection in agent workflows
+// ABOUTME: Provides type-safe context management for tool execution and state sharing
+
 import "context"
 
 // RunContext carries dependencies for a run

@@ -1,5 +1,8 @@
 package domain
 
+// ABOUTME: Provider-specific option implementations using interface-based design
+// ABOUTME: Enables type-safe configuration for different LLM providers
+
 import (
 	"net/http"
 )

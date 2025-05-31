@@ -1,5 +1,8 @@
 package processor
 
+// ABOUTME: Singleton prompt enhancer manager for schema-based prompts
+// ABOUTME: Provides global access to prompt enhancement functionality
+
 import (
 	"sync"
 

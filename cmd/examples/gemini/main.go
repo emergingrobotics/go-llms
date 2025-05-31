@@ -1,5 +1,8 @@
 package main
 
+// ABOUTME: Example demonstrating direct usage of the Gemini provider
+// ABOUTME: Shows configuration options and structured output extraction
+
 import (
 	"context"
 	"log"

@@ -1,6 +1,9 @@
 // Package workflow provides agent workflow implementations.
 package workflow
 
+// ABOUTME: Implements multi-agent workflows for complex task coordination
+// ABOUTME: Enables multiple agents to collaborate and share context
+
 import (
 	"context"
 	"encoding/json"

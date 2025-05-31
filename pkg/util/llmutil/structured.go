@@ -1,5 +1,8 @@
 package llmutil
 
+// ABOUTME: Convenience functions for structured output extraction
+// ABOUTME: Combines provider and processor setup for common use cases
+
 import (
 	"context"
 	"fmt"

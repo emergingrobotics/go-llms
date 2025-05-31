@@ -1,6 +1,9 @@
 // Package llmutil provides utility functions for common LLM operations.
 package llmutil
 
+// ABOUTME: Main utility functions for LLM provider creation and configuration
+// ABOUTME: Provides convenience wrappers for common LLM operations
+
 import (
 	"context"
 	"encoding/json"

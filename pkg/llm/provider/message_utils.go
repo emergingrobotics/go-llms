@@ -1,5 +1,8 @@
 package provider
 
+// ABOUTME: Utility functions for message conversion and validation
+// ABOUTME: Handles provider-specific message format transformations
+
 import (
 	"hash/fnv"
 	"sync"

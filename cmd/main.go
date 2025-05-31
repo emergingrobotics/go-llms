@@ -1,5 +1,8 @@
 package main
 
+// ABOUTME: Main CLI entry point for the go-llms command-line tool
+// ABOUTME: Provides structured output extraction and multimodal LLM interactions via CLI
+
 import (
 	"bufio"
 	"context"

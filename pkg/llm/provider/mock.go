@@ -1,5 +1,8 @@
 package provider
 
+// ABOUTME: Mock provider implementation for testing without API calls
+// ABOUTME: Provides configurable responses and simulated behaviors
+
 import (
 	"context"
 	"encoding/json"

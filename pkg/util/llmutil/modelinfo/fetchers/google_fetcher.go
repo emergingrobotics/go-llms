@@ -1,5 +1,8 @@
 package fetchers
 
+// ABOUTME: Google AI API client for fetching available Gemini models
+// ABOUTME: Retrieves model information and capabilities from Google
+
 import (
 	"encoding/json"
 	"fmt"

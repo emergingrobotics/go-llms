@@ -1,5 +1,8 @@
 package provider
 
+// ABOUTME: Testing-specific exports for internal provider functionality
+// ABOUTME: Exposes private types and functions for test access
+
 import "time"
 
 // This file contains exported functions for testing purposes only.

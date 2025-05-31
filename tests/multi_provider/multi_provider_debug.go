@@ -1,5 +1,8 @@
 package multi_provider
 
+// ABOUTME: Debug utilities for multi-provider testing and diagnostics
+// ABOUTME: Provides detailed logging and tracing for provider interactions
+
 import (
 	"context"
 	"testing"

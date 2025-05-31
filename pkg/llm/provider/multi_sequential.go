@@ -1,6 +1,9 @@
 // Package provider implements various LLM providers.
 package provider
 
+// ABOUTME: Sequential multi-provider strategy with ordered fallback
+// ABOUTME: Tries providers in sequence until one succeeds
+
 import (
 	"context"
 

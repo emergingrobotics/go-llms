@@ -30,30 +30,7 @@
     - [ ] P2: Add performance acceptance criteria to CI pipeline (REVISIT)
 
 ## Architecture & Built-in Components for next release (Immediate - P0)
-- [ ] P0: Analyze consistent logging strategy across codebase
-  - [x] Phase 2: Standardize Examples (completed)
-    - [x] Convert fmt-only examples to use `log` package:
-      - [x] gemini/main.go (completed)
-      - [x] modelinfo/main.go (CLI tool - correctly uses fmt pattern)
-      - [x] multi/main.go (completed)
-      - [x] openai_api_compatible_providers/main.go (completed)
-      - [x] profiling/main.go (completed)
-      - [x] provider_options/main.go (completed)
-      - [x] schema/main.go (completed)
-    - [x] Ensure agent examples properly demonstrate slog with LoggingHook (already done)
-    - [x] Verify no mixing of log/fmt for logging in the same example
-      - Found 6 files that mix approaches: agent, coercion, consensus, convenience, metrics, multimodal
-      - These are agent examples that use slog but also fmt, which is acceptable per docs
-  - [ ] Phase 3: Debug Infrastructure (REVISIT)
-    - [ ] Create debug build tags for verbose logging
-    - [ ] Convert commented debug prints in param_cache.go to conditional compilation
-    - [ ] Document how to build with debug logging enabled
-  - [ ] Phase 4: Core Library Cleanup (REVISIT)
-    - [ ] Ensure no direct logging in pkg/ (except hooks)
-    - [ ] Improve error messages with more context
-    - [ ] Add error wrapping where beneficial
-    - [ ] Verify thread safety in all logging paths
-    - [ ] update documentation and doc cleanup related to logging. do it throughout all docs in codebase.
+- [x] P0: Analyze consistent logging strategy across codebase (COMPLETED - see TODO-DONE.md)
   
 - [ ] P1: Analyze structure for exposing built-in tools, agents, and workflows
   - [ ] Review current pkg/agent (including workflow subpackage) structure for extensibility

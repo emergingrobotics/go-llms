@@ -2,6 +2,9 @@
 // It allows profiling of specific operations and components to identify performance bottlenecks.
 package profiling
 
+// ABOUTME: Core profiling infrastructure for CPU and memory analysis
+// ABOUTME: Enables targeted performance profiling of LLM operations
+
 import (
 	"context"
 	"fmt"
@@ -11,6 +14,42 @@ import (
 	"sync"
 	"time"
 )
+
+// Logger interface for profiling output
+type Logger interface {
+	Printf(format string, v ...interface{})
+	Errorf(format string, v ...interface{})
+}
+
+// NoOpLogger is a logger that discards all output
+type NoOpLogger struct{}
+
+func (NoOpLogger) Printf(format string, v ...interface{}) {}
+func (NoOpLogger) Errorf(format string, v ...interface{}) {}
+
+var (
+	// logger is the package-level logger, defaults to no-op
+	logger   Logger = NoOpLogger{}
+	loggerMu sync.RWMutex
+)
+
+// SetLogger sets the logger for profiling output
+func SetLogger(l Logger) {
+	loggerMu.Lock()
+	defer loggerMu.Unlock()
+	if l == nil {
+		logger = NoOpLogger{}
+	} else {
+		logger = l
+	}
+}
+
+// getLogger returns the current logger
+func getLogger() Logger {
+	loggerMu.RLock()
+	defer loggerMu.RUnlock()
+	return logger
+}
 
 // Default directory for storing profiling output
 var profileDir = filepath.Join(os.TempDir(), "go-llms-profiles")
@@ -172,10 +211,10 @@ func (p *Profiler) ProfileOperation(ctx context.Context, opName string, fn func(
 	cpuFile, err := os.Create(cpuFilePath)
 	if err != nil {
 		// Log the error but continue with the operation
-		fmt.Fprintf(os.Stderr, "Warning: could not create CPU profile for %s: %v\n", opName, err)
+		getLogger().Errorf("Warning: could not create CPU profile for %s: %v", opName, err)
 	} else {
 		if err := pprof.StartCPUProfile(cpuFile); err != nil {
-			fmt.Fprintf(os.Stderr, "Warning: could not start CPU profile for %s: %v\n", opName, err)
+			getLogger().Errorf("Warning: could not start CPU profile for %s: %v", opName, err)
 			cpuFile.Close()
 		} else {
 			defer func() {
@@ -194,16 +233,16 @@ func (p *Profiler) ProfileOperation(ctx context.Context, opName string, fn func(
 	memFilePath := filepath.Join(profileDir, fmt.Sprintf("%s_%s_mem.pprof", p.name, opName))
 	memFile, memErr := os.Create(memFilePath)
 	if memErr != nil {
-		fmt.Fprintf(os.Stderr, "Warning: could not create memory profile for %s: %v\n", opName, memErr)
+		getLogger().Errorf("Warning: could not create memory profile for %s: %v", opName, memErr)
 	} else {
 		if memErr := pprof.WriteHeapProfile(memFile); memErr != nil {
-			fmt.Fprintf(os.Stderr, "Warning: could not write memory profile for %s: %v\n", opName, memErr)
+			getLogger().Errorf("Warning: could not write memory profile for %s: %v", opName, memErr)
 		}
 		memFile.Close()
 	}
 
 	// Log duration and return result
-	fmt.Printf("Operation %s completed in %v\n", opName, duration)
+	getLogger().Printf("Operation %s completed in %v", opName, duration)
 	return result, err
 }
 
@@ -225,7 +264,7 @@ func GetGlobalProfiler() *Profiler {
 func SetProfileDir(dir string) {
 	// Check if directory exists
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		fmt.Fprintf(os.Stderr, "Warning: profile directory %s doesn't exist\n", dir)
+		getLogger().Errorf("Warning: profile directory %s doesn't exist", dir)
 		return
 	}
 
@@ -233,7 +272,7 @@ func SetProfileDir(dir string) {
 	testFile := filepath.Join(dir, ".profiler_test")
 	f, err := os.Create(testFile)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: profile directory %s isn't writable: %v\n", dir, err)
+		getLogger().Errorf("Warning: profile directory %s isn't writable: %v", dir, err)
 		return
 	}
 	f.Close()

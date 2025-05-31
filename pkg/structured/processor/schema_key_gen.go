@@ -1,5 +1,8 @@
 package processor
 
+// ABOUTME: Schema cache key generation utilities for consistent hashing
+// ABOUTME: Ensures deterministic cache keys across schema variations
+
 import (
 	"hash"
 	"hash/fnv"

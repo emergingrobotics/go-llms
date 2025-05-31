@@ -1,5 +1,8 @@
 package main
 
+// ABOUTME: Example demonstrating metrics collection for provider operations
+// ABOUTME: Shows how to track latency, token usage, and pool utilization
+
 import (
 	"context"
 	"encoding/json"

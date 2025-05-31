@@ -1,5 +1,8 @@
 package main
 
+// ABOUTME: Configuration management for the go-llms CLI application
+// ABOUTME: Handles loading settings from YAML files and environment variables
+
 import (
 	"fmt"
 	"os"

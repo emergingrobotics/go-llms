@@ -87,17 +87,46 @@ Tests use the standard testing package logging:
 
 ### Debug Logging
 
-Debug logging uses build tags for conditional compilation:
+The library includes a debug logging infrastructure that's only compiled when using the `-tags debug` build flag. This ensures zero overhead in production builds.
+
+#### How to Enable Debug Logging
+
+1. **Build with debug flag**:
+   ```bash
+   go build -tags debug ./...
+   make build-debug
+   ```
+
+2. **Test with debug flag**:
+   ```bash
+   go test -tags debug ./...
+   make test-debug
+   ```
+
+3. **Control which components log**:
+   ```bash
+   # Enable all debug logging
+   GO_LLMS_DEBUG=all make test-debug
+   
+   # Enable specific components
+   GO_LLMS_DEBUG=param_cache,schema make test-debug
+   
+   # In your application
+   export GO_LLMS_DEBUG=param_cache
+   ./bin/go-llms-debug
+   ```
+
+#### Using Debug Logging in Code
 
 ```go
-// +build debug
+import "github.com/lexlapax/go-llms/pkg/internal/debug"
 
-package mypackage
-
-func debugLog(format string, args ...interface{}) {
-    log.Printf("[DEBUG] "+format, args...)
-}
+// Debug logging is only compiled with -tags debug
+debug.Printf("param_cache", "Processing field: %s", fieldName)
+debug.Println("schema", "Validation started")
 ```
+
+When built without the debug tag, these calls compile to no-ops with zero runtime overhead.
 
 ## Thread Safety and Concurrency
 

@@ -1,5 +1,8 @@
 package tools
 
+// ABOUTME: Provides common pre-built tools for agents including HTTP requests, file operations, and shell commands
+// ABOUTME: Ready-to-use tool implementations that can be added to any agent workflow
+
 import (
 	"context"
 	"fmt"

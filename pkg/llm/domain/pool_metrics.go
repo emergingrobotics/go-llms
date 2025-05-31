@@ -1,3 +1,6 @@
+// ABOUTME: Metrics-enabled object pools for performance monitoring
+// ABOUTME: Tracks pool utilization, allocation rates, and memory usage
+
 package domain
 
 import (

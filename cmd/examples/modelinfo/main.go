@@ -1,5 +1,8 @@
 package main
 
+// ABOUTME: Example demonstrating model discovery and information retrieval
+// ABOUTME: Shows how to fetch available models and their capabilities from providers
+
 import (
 	"encoding/json"
 	"flag"

@@ -1,5 +1,8 @@
 package validation
 
+// ABOUTME: Core JSON schema validator with type validation and constraints
+// ABOUTME: Features object pooling, regex caching, and optional type coercion
+
 import (
 	"encoding/base64"
 	"encoding/json"
@@ -355,7 +358,7 @@ func (v *Validator) validateObject(path string, schema *domain.Schema, data inte
 				if path != "" {
 					propPath = path + "." + req
 				}
-				errors = append(errors, fmt.Sprintf("property %s is required", propPath))
+				errors = append(errors, fmt.Sprintf("property '%s' is required but missing", propPath))
 			}
 		}
 	}
@@ -444,7 +447,7 @@ func (v *Validator) validateArray(path string, schema *domain.Schema, data inter
 		if displayPath == "" {
 			displayPath = "array"
 		}
-		errors = append(errors, fmt.Sprintf("%s must contain at least %d items", displayPath, *minItems))
+		errors = append(errors, fmt.Sprintf("%s must contain at least %d items but has %d", displayPath, *minItems, len(arr)))
 	}
 
 	// Validate maxItems
@@ -453,7 +456,7 @@ func (v *Validator) validateArray(path string, schema *domain.Schema, data inter
 		if displayPath == "" {
 			displayPath = "array"
 		}
-		errors = append(errors, fmt.Sprintf("%s must contain no more than %d items", displayPath, *maxItems))
+		errors = append(errors, fmt.Sprintf("%s must contain no more than %d items but has %d", displayPath, *maxItems, len(arr)))
 	}
 
 	// Validate uniqueItems if required

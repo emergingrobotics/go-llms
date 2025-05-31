@@ -1,5 +1,8 @@
 package processor
 
+// ABOUTME: Optimized string builder with capacity estimation for prompts
+// ABOUTME: Reduces memory allocations during prompt construction
+
 import (
 	"strings"
 

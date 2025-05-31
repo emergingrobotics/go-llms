@@ -1,5 +1,8 @@
 package main
 
+// ABOUTME: Example demonstrating advanced provider configuration options
+// ABOUTME: Shows how to use custom clients, retry logic, and other settings
+
 import (
 	"context"
 	"log"

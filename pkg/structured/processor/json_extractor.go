@@ -1,5 +1,8 @@
 package processor
 
+// ABOUTME: Optimized JSON extraction from LLM responses with markdown support
+// ABOUTME: Uses tiered approach from fast simple extraction to complex parsing
+
 import (
 	"context"
 	"regexp"

@@ -1,5 +1,8 @@
 package main
 
+// ABOUTME: Example demonstrating usage with OpenAI API compatible providers
+// ABOUTME: Shows how to use alternative providers like OpenRouter and Ollama
+
 import (
 	"context"
 	"log"

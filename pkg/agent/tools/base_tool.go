@@ -1,6 +1,9 @@
 // Package tools provides implementations of agent tools.
 package tools
 
+// ABOUTME: Provides base implementation for agent tools with reflection-based parameter handling
+// ABOUTME: Handles automatic parameter conversion and validation for tool functions
+
 import (
 	"context"
 	"fmt"

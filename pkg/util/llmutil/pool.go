@@ -1,5 +1,8 @@
 package llmutil
 
+// ABOUTME: Object pool management utilities for performance optimization
+// ABOUTME: Provides wrappers around sync.Pool with automatic type handling
+
 import (
 	"context"
 	"fmt"

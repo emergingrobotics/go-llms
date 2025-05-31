@@ -1,11 +1,15 @@
 // Package tools provides implementations of agent tools.
 package tools
 
+// ABOUTME: Provides reflection-based parameter type caching to optimize tool execution performance
+// ABOUTME: Caches struct field information and type conversion patterns to reduce repeated reflection calls
+
 import (
-	// "fmt" - Commented out as we disabled debug prints
 	"reflect"
 	"strings"
 	"sync"
+
+	"github.com/lexlapax/go-llms/pkg/internal/debug"
 )
 
 // parameterTypeCache caches reflection type information to reduce allocations
@@ -75,14 +79,12 @@ func (c *parameterTypeCache) getStructFields(structType reflect.Type) []fieldInf
 		})
 	}
 
-	// Debug information (commented for performance)
-	/*
-		fmt.Printf("DEBUG: Struct type %v fields:\n", structType)
-		for _, f := range fields {
-			fmt.Printf("  Field: %s, JSON: %s, Index: %d, Exported: %v\n",
-				f.name, f.jsonName, f.index, f.isExported)
-		}
-	*/
+	// Debug information (only compiled with -tags debug)
+	debug.Printf("param_cache", "Struct type %v fields:\n", structType)
+	for _, f := range fields {
+		debug.Printf("param_cache", "  Field: %s, JSON: %s, Index: %d, Exported: %v\n",
+			f.name, f.jsonName, f.index, f.isExported)
+	}
 
 	// Cache and return
 	c.structFieldCache.Store(structType, fields)

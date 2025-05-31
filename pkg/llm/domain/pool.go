@@ -1,5 +1,8 @@
 package domain
 
+// ABOUTME: Object pool implementations for Response and Message types
+// ABOUTME: Reduces memory allocations through efficient object reuse
+
 import (
 	"sync"
 	"unsafe"

@@ -1,5 +1,8 @@
 package main
 
+// ABOUTME: Simple example demonstrating basic structured output extraction from LLMs
+// ABOUTME: Shows how to use schemas to validate and extract JSON data from LLM responses
+
 import (
 	"context"
 	"encoding/json"

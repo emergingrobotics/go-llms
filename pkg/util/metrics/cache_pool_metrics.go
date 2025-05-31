@@ -1,5 +1,8 @@
 package metrics
 
+// ABOUTME: Metrics collection for cache and object pool performance
+// ABOUTME: Tracks hit rates, evictions, and memory utilization
+
 import (
 	"sync/atomic"
 	"time"

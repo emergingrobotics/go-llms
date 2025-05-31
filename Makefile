@@ -23,347 +23,366 @@ BINARY_NAME=go-llms
 # Build flags
 LDFLAGS=-ldflags "-s -w"
 BUILD_FLAGS=-v
+DEBUG_BUILD_FLAGS=-v -tags debug
+DEBUG_BUILD_FLAGS_VERBOSE=-v -tags debug -gcflags="all=-N -l"
 
 # Test flags
 TEST_FLAGS=-v -race -coverprofile=coverage.out -covermode=atomic
 TEST_VERBOSE_FLAGS=-v
 TEST_RACE_FLAGS=-race
 TEST_SHORT_FLAGS=-short
+DEBUG_TEST_FLAGS=-v -tags debug
 
 # Benchmark flags
 BENCH_FLAGS=-bench=. -benchmem
 
-# Declare PHONY targets
+# Color definitions for output
+RED=\033[0;31m
+GREEN=\033[0;32m
+YELLOW=\033[1;33m
+BLUE=\033[0;34m
+NC=\033[0m # No Color
+
+# Declare PHONY targets (organized by category)
 .PHONY: all help \
-	build build-all build-examples build-example \
-	test test-all test-pkg test-func test-short test-short-pkg test-cmd test-examples \
-	test-integration test-integration-mock test-multi-provider test-stress test-stress-provider \
-	test-stress-agent test-stress-structured test-stress-pool \
-	test-profiling test-profiling-all test-metrics \
-	benchmark benchmark-all benchmark-pkg benchmark-specific \
-	profile profile-cpu profile-mem profile-block \
+	build build-debug build-all build-examples build-example \
+	test test-quick test-all test-debug test-pkg test-func test-short test-integration test-stress \
+	bench bench-all bench-pkg bench-specific \
+	profile profile-cpu profile-mem \
 	coverage coverage-pkg coverage-view \
-	lint install-lint fmt vet \
-	deps deps-tidy deps-download \
-	clean clean-all
+	lint fmt vet quality check \
+	deps clean clean-all \
+	dev watch
 
-# Default target
-all: clean test build build-examples
+#=============================================================================
+# DEFAULT TARGET
+#=============================================================================
+# Default target shows help
+all: help
 
-# Main binary build
+#=============================================================================
+# QUICK TARGETS (Most commonly used)
+#=============================================================================
+
+# Quick build - just the main binary
 build:
+	@echo "$(GREEN)Building main binary...$(NC)"
 	$(GOBUILD) $(BUILD_FLAGS) -o $(BINARY_DIR)/$(BINARY_NAME) $(LDFLAGS) ./$(CMD_DIR)/
 
-# Build all binaries
+# Quick test - runs unit tests only (no integration/stress tests)
+test:
+	@echo "$(GREEN)Running unit tests...$(NC)"
+	$(GOTEST) $(TEST_FLAGS) `$(GOCMD) list ./... | grep -v -E '(integration|multi_provider|stress|profiling|metrics)'`
+
+# Quick check - format, vet, and lint
+check: fmt vet lint
+	@echo "$(GREEN)✓ All checks passed!$(NC)"
+
+# Development mode - build and test
+dev: clean check test build
+	@echo "$(GREEN)✓ Development build complete!$(NC)"
+
+#=============================================================================
+# BUILD TARGETS
+#=============================================================================
+
+# Build with debug logging enabled
+build-debug:
+	@echo "$(YELLOW)Building with debug logging enabled...$(NC)"
+	@echo "$(YELLOW)Set GO_LLMS_DEBUG=all or GO_LLMS_DEBUG=component1,component2$(NC)"
+	$(GOBUILD) $(DEBUG_BUILD_FLAGS) -o $(BINARY_DIR)/$(BINARY_NAME)-debug $(LDFLAGS) ./$(CMD_DIR)/
+
+# Build all binaries (main + examples)
 build-all: build build-examples
+	@echo "$(GREEN)✓ All binaries built!$(NC)"
 
 # Build all example binaries
 build-examples:
+	@echo "$(GREEN)Building example binaries...$(NC)"
 	@if [ -d "$(CMD_DIR)/$(EXAMPLES_DIR)" ]; then \
 		for dir in $(CMD_DIR)/$(EXAMPLES_DIR)/*/; do \
 			if [ -d "$$dir" ]; then \
 				name=$$(basename $$dir); \
-				echo "Building example: $$name"; \
+				echo "  Building $$name..."; \
 				$(GOBUILD) $(BUILD_FLAGS) -o $(BINARY_DIR)/$$name $(LDFLAGS) ./$(CMD_DIR)/$(EXAMPLES_DIR)/$$name; \
 			fi; \
 		done; \
+		echo "$(GREEN)✓ Examples built!$(NC)"; \
 	else \
-		echo "No examples found in $(CMD_DIR)/$(EXAMPLES_DIR)"; \
+		echo "$(RED)No examples found in $(CMD_DIR)/$(EXAMPLES_DIR)$(NC)"; \
 	fi
 
 # Build a specific example (usage: make build-example EXAMPLE=simple)
 build-example:
 	@if [ -z "$(EXAMPLE)" ]; then \
-		echo "Usage: make build-example EXAMPLE=<example-name>"; \
+		echo "$(RED)Usage: make build-example EXAMPLE=<example-name>$(NC)"; \
 		exit 1; \
 	fi
 	@if [ -d "$(CMD_DIR)/$(EXAMPLES_DIR)/$(EXAMPLE)" ]; then \
-		echo "Building example: $(EXAMPLE)"; \
+		echo "$(GREEN)Building example: $(EXAMPLE)$(NC)"; \
 		$(GOBUILD) $(BUILD_FLAGS) -o $(BINARY_DIR)/$(EXAMPLE) $(LDFLAGS) ./$(CMD_DIR)/$(EXAMPLES_DIR)/$(EXAMPLE); \
 	else \
-		echo "Example $(EXAMPLE) not found in $(CMD_DIR)/$(EXAMPLES_DIR)/$(EXAMPLE)"; \
+		echo "$(RED)Example $(EXAMPLE) not found$(NC)"; \
 		exit 1; \
 	fi
 
-# Test targets
-# Run all tests (excluding integration, multi-provider, stress, profiling, and metrics tests)
-test:
-	$(GOTEST) $(TEST_FLAGS) `$(GOCMD) list ./... | grep -v github.com/lexlapax/go-llms/$(TESTS_DIR)/integration | grep -v github.com/lexlapax/go-llms/$(TESTS_DIR)/multi_provider | grep -v github.com/lexlapax/go-llms/$(TESTS_DIR)/stress | grep -v github.com/lexlapax/go-llms/pkg/util/profiling | grep -v github.com/lexlapax/go-llms/pkg/util/metrics`
+#=============================================================================
+# TEST TARGETS
+#=============================================================================
 
-# Run all tests including integration, multi-provider, stress, and profiling tests
-test-all: test test-integration test-multi-provider test-stress test-profiling-all
+# Quick test - unit tests only
+test-quick:
+	@echo "$(GREEN)Running quick tests (unit tests only)...$(NC)"
+	$(GOTEST) $(TEST_SHORT_FLAGS) `$(GOCMD) list ./... | grep -v -E '(integration|multi_provider|stress)'`
 
-# Run tests for a specific package (usage: make test-pkg PKG=schema/validation)
+# Run all tests (unit + integration + stress)
+test-all: test test-integration test-stress
+	@echo "$(GREEN)✓ All tests passed!$(NC)"
+
+# Run tests with debug logging
+test-debug:
+	@echo "$(YELLOW)Running tests with debug logging...$(NC)"
+	@echo "$(YELLOW)Set GO_LLMS_DEBUG=all or GO_LLMS_DEBUG=component1,component2$(NC)"
+	$(GOTEST) $(DEBUG_TEST_FLAGS) `$(GOCMD) list ./... | grep -v -E '(integration|multi_provider|stress)'`
+
+# Run tests for a specific package
 test-pkg:
 	@if [ -z "$(PKG)" ]; then \
-		echo "Usage: make test-pkg PKG=<package-path>"; \
+		echo "$(RED)Usage: make test-pkg PKG=<package-path>$(NC)"; \
+		echo "$(YELLOW)Example: make test-pkg PKG=schema/validation$(NC)"; \
 		exit 1; \
 	fi
+	@echo "$(GREEN)Testing package: $(PKG)$(NC)"
 	$(GOTEST) $(TEST_FLAGS) ./$(PACKAGE_DIR)/$(PKG)
 
-# Test a specific test function (usage: make test-func PKG=schema/validation FUNC=TestArrayValidation)
+# Test a specific function
 test-func:
 	@if [ -z "$(PKG)" ] || [ -z "$(FUNC)" ]; then \
-		echo "Usage: make test-func PKG=<package-path> FUNC=<function-name>"; \
+		echo "$(RED)Usage: make test-func PKG=<package-path> FUNC=<function-name>$(NC)"; \
+		echo "$(YELLOW)Example: make test-func PKG=schema/validation FUNC=TestArrayValidation$(NC)"; \
 		exit 1; \
 	fi
+	@echo "$(GREEN)Testing function $(FUNC) in package $(PKG)$(NC)"
 	$(GOTEST) $(TEST_VERBOSE_FLAGS) ./$(PACKAGE_DIR)/$(PKG) -run "$(FUNC)"
 
 # Run only short tests
 test-short:
+	@echo "$(GREEN)Running short tests...$(NC)"
 	$(GOTEST) $(TEST_SHORT_FLAGS) ./...
-
-# Run only short tests for a specific package
-test-short-pkg:
-	@if [ -z "$(PKG)" ]; then \
-		echo "Usage: make test-short-pkg PKG=<package-path>"; \
-		exit 1; \
-	fi
-	$(GOTEST) $(TEST_SHORT_FLAGS) ./$(PACKAGE_DIR)/$(PKG)
-
-# Test the command line client
-test-cmd:
-	$(GOTEST) $(TEST_VERBOSE_FLAGS) ./$(CMD_DIR)
-
-# Test examples
-test-examples:
-	@if [ -z "$(EXAMPLE)" ]; then \
-		echo "Testing all examples..."; \
-		for dir in $(CMD_DIR)/$(EXAMPLES_DIR)/*/; do \
-			if [ -d "$$dir" ]; then \
-				name=$$(basename $$dir); \
-				echo "Testing example: $$name"; \
-				$(GOTEST) $(TEST_VERBOSE_FLAGS) ./$(CMD_DIR)/$(EXAMPLES_DIR)/$$name; \
-			fi; \
-		done; \
-	else \
-		echo "Testing example: $(EXAMPLE)"; \
-		$(GOTEST) $(TEST_VERBOSE_FLAGS) ./$(CMD_DIR)/$(EXAMPLES_DIR)/$(EXAMPLE); \
-	fi
 
 # Run integration tests (requires API keys)
 test-integration:
+	@echo "$(YELLOW)Running integration tests (requires API keys)...$(NC)"
 	$(GOTEST) $(TEST_VERBOSE_FLAGS) ./$(TESTS_DIR)/integration/...
 
-# Run mock-only integration tests (doesn't require API keys)
-test-integration-mock:
-	$(GOTEST) $(TEST_VERBOSE_FLAGS) ./$(TESTS_DIR)/integration/validation_test.go ./$(TESTS_DIR)/integration/agent_test.go
-
-# Run multi-provider tests
-test-multi-provider:
-	$(GOTEST) $(TEST_VERBOSE_FLAGS) ./$(TESTS_DIR)/multi_provider/...
-
-# Run all stress tests
+# Run stress tests
 test-stress:
+	@echo "$(YELLOW)Running stress tests...$(NC)"
 	$(GOTEST) $(TEST_VERBOSE_FLAGS) ./$(TESTS_DIR)/stress/...
 
-# Run provider stress tests
-test-stress-provider:
-	$(GOTEST) $(TEST_VERBOSE_FLAGS) ./$(TESTS_DIR)/stress/provider_stress_test.go
+#=============================================================================
+# BENCHMARK TARGETS
+#=============================================================================
 
-# Run agent stress tests
-test-stress-agent:
-	$(GOTEST) $(TEST_VERBOSE_FLAGS) ./$(TESTS_DIR)/stress/agent_stress_test.go
-
-# Run structured output processor stress tests
-test-stress-structured:
-	$(GOTEST) $(TEST_VERBOSE_FLAGS) ./$(TESTS_DIR)/stress/structured_stress_test.go
-
-# Run memory pool stress tests
-test-stress-pool:
-	$(GOTEST) $(TEST_VERBOSE_FLAGS) ./$(TESTS_DIR)/stress/pool_stress_test.go
-
-# Run tests for all profiling-related packages
-test-profiling-all: test-profiling test-metrics
-
-# Run profiling package tests
-test-profiling:
-	$(GOTEST) $(TEST_VERBOSE_FLAGS) ./pkg/util/profiling
-
-# Run metrics package tests
-test-metrics:
-	$(GOTEST) $(TEST_VERBOSE_FLAGS) ./pkg/util/metrics
-
-# Benchmark targets
-# Run all benchmarks
-benchmark:
+# Run benchmarks
+bench:
+	@echo "$(GREEN)Running benchmarks...$(NC)"
 	$(GOTEST) $(BENCH_FLAGS) ./$(BENCHMARKS_DIR)/...
 
-# Run benchmarks for all components
-benchmark-all:
+# Run all benchmarks (including in packages)
+bench-all:
+	@echo "$(GREEN)Running all benchmarks...$(NC)"
 	$(GOTEST) $(BENCH_FLAGS) ./...
-	$(GOTEST) $(BENCH_FLAGS) ./$(BENCHMARKS_DIR)/...
 
 # Run benchmarks for a specific package
-benchmark-pkg:
+bench-pkg:
 	@if [ -z "$(PKG)" ]; then \
-		echo "Usage: make benchmark-pkg PKG=<package-path>"; \
+		echo "$(RED)Usage: make bench-pkg PKG=<package-path>$(NC)"; \
 		exit 1; \
 	fi
+	@echo "$(GREEN)Running benchmarks for package: $(PKG)$(NC)"
 	$(GOTEST) $(BENCH_FLAGS) ./$(PACKAGE_DIR)/$(PKG)
 
-# Run a specific benchmark (usage: make benchmark-specific BENCH=BenchmarkConsensus)
-benchmark-specific:
+# Run a specific benchmark
+bench-specific:
 	@if [ -z "$(BENCH)" ]; then \
-		echo "Usage: make benchmark-specific BENCH=<benchmark-name>"; \
+		echo "$(RED)Usage: make bench-specific BENCH=<benchmark-name>$(NC)"; \
 		exit 1; \
 	fi
+	@echo "$(GREEN)Running benchmark: $(BENCH)$(NC)"
 	$(GOTEST) -bench=$(BENCH) $(BENCH_FLAGS) ./$(BENCHMARKS_DIR)/...
 
-# Profiling targets
-# Profile CPU usage (creates cpu.prof)
+#=============================================================================
+# PROFILING TARGETS
+#=============================================================================
+
+# Profile CPU usage
 profile-cpu:
+	@echo "$(GREEN)Profiling CPU usage...$(NC)"
 	$(GOTEST) $(BENCH_FLAGS) -cpuprofile=cpu.prof ./$(BENCHMARKS_DIR)/...
-	@echo "View profile with: go tool pprof cpu.prof"
+	@echo "$(YELLOW)View profile with: go tool pprof cpu.prof$(NC)"
 
-# Profile memory usage (creates mem.prof)
+# Profile memory usage
 profile-mem:
+	@echo "$(GREEN)Profiling memory usage...$(NC)"
 	$(GOTEST) $(BENCH_FLAGS) -memprofile=mem.prof ./$(BENCHMARKS_DIR)/...
-	@echo "View profile with: go tool pprof mem.prof"
+	@echo "$(YELLOW)View profile with: go tool pprof mem.prof$(NC)"
 
-# Profile blocking operations (creates block.prof)
-profile-block:
-	$(GOTEST) $(BENCH_FLAGS) -blockprofile=block.prof ./$(BENCHMARKS_DIR)/...
-	@echo "View profile with: go tool pprof block.prof"
+# Combined profiling
+profile: profile-cpu profile-mem
 
-# Combined profiling target
-profile: profile-cpu profile-mem profile-block
+#=============================================================================
+# COVERAGE TARGETS
+#=============================================================================
 
-# Coverage targets
 # Generate test coverage
-coverage: test
+coverage:
+	@echo "$(GREEN)Generating coverage report...$(NC)"
+	@$(MAKE) test
 	$(GOCMD) tool cover -html=coverage.out -o coverage.html
-	@echo "Coverage report generated at coverage.html"
+	@echo "$(GREEN)✓ Coverage report generated at coverage.html$(NC)"
 
-# Generate test coverage for a specific package
+# Generate coverage for specific package
 coverage-pkg:
 	@if [ -z "$(PKG)" ]; then \
-		echo "Usage: make coverage-pkg PKG=<package-path>"; \
+		echo "$(RED)Usage: make coverage-pkg PKG=<package-path>$(NC)"; \
 		exit 1; \
 	fi
+	@echo "$(GREEN)Generating coverage for package: $(PKG)$(NC)"
 	$(GOTEST) -coverprofile=coverage.out -covermode=atomic ./$(PACKAGE_DIR)/$(PKG)
 	$(GOCMD) tool cover -html=coverage.out -o coverage.html
-	@echo "Coverage report for $(PKG) generated at coverage.html"
+	@echo "$(GREEN)✓ Coverage report generated at coverage.html$(NC)"
 
 # View coverage report
 coverage-view: coverage
 	@if [ "$(shell uname)" = "Darwin" ]; then \
 		open coverage.html; \
 	elif [ "$(shell uname)" = "Linux" ]; then \
-		xdg-open coverage.html 2>/dev/null || echo "Could not open coverage.html automatically"; \
+		xdg-open coverage.html 2>/dev/null || echo "$(YELLOW)Could not open coverage.html automatically$(NC)"; \
 	else \
-		echo "Coverage report generated at coverage.html"; \
+		echo "$(GREEN)Coverage report generated at coverage.html$(NC)"; \
 	fi
 
-# Code quality targets
-# Run linting
-lint:
-	@if command -v golangci-lint >/dev/null 2>&1; then \
-		echo "Running golangci-lint..."; \
-		golangci-lint run ./...; \
-	else \
-		echo "golangci-lint not installed. Run: make install-lint"; \
-		exit 1; \
-	fi
+#=============================================================================
+# CODE QUALITY TARGETS
+#=============================================================================
 
-# Install golangci-lint
-install-lint:
-	$(GOGET) github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-	@echo "golangci-lint installed successfully"
+# Run all quality checks
+quality: fmt vet lint
+	@echo "$(GREEN)✓ Code quality checks passed!$(NC)"
 
 # Format code
 fmt:
+	@echo "$(GREEN)Formatting code...$(NC)"
 	$(GOFMT) ./...
 
 # Run vet
 vet:
+	@echo "$(GREEN)Running go vet...$(NC)"
 	$(GOVET) ./...
 
-# Dependency targets
-# Tidy dependencies
-deps-tidy:
+# Run linting
+lint:
+	@if command -v golangci-lint >/dev/null 2>&1; then \
+		echo "$(GREEN)Running golangci-lint...$(NC)"; \
+		golangci-lint run ./...; \
+	else \
+		echo "$(YELLOW)golangci-lint not installed. Install with:$(NC)"; \
+		echo "$(BLUE)  go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest$(NC)"; \
+		exit 1; \
+	fi
+
+#=============================================================================
+# DEPENDENCY MANAGEMENT
+#=============================================================================
+
+# Manage dependencies
+deps:
+	@echo "$(GREEN)Managing dependencies...$(NC)"
 	$(GOMOD) tidy
-
-# Download dependencies
-deps-download:
 	$(GOMOD) download
+	@echo "$(GREEN)✓ Dependencies updated!$(NC)"
 
-# Combined dependency management
-deps: deps-tidy deps-download
+#=============================================================================
+# CLEANUP TARGETS
+#=============================================================================
 
-# Clean targets
 # Clean build artifacts
 clean:
+	@echo "$(GREEN)Cleaning build artifacts...$(NC)"
 	rm -rf $(BINARY_DIR)/*
 	mkdir -p $(BINARY_DIR)
 	rm -f coverage.out coverage.html *.prof
+	@echo "$(GREEN)✓ Clean complete!$(NC)"
 
 # Clean everything including Go cache
 clean-all: clean
+	@echo "$(YELLOW)Cleaning Go cache...$(NC)"
 	$(GOCMD) clean -cache -testcache -modcache
-	@echo "Cleaned all build artifacts and Go cache"
+	@echo "$(GREEN)✓ Deep clean complete!$(NC)"
 
-# Help message
+#=============================================================================
+# DEVELOPMENT HELPERS
+#=============================================================================
+
+# Watch for changes and rebuild (requires entr)
+watch:
+	@if command -v entr >/dev/null 2>&1; then \
+		echo "$(GREEN)Watching for changes...$(NC)"; \
+		find . -name '*.go' | entr -c make dev; \
+	else \
+		echo "$(YELLOW)entr not installed. Install with:$(NC)"; \
+		echo "$(BLUE)  macOS: brew install entr$(NC)"; \
+		echo "$(BLUE)  Linux: apt-get install entr$(NC)"; \
+		exit 1; \
+	fi
+
+#=============================================================================
+# HELP TARGET
+#=============================================================================
+
 help:
-	@echo "Go-LLMs Makefile"
+	@echo "$(BLUE)Go-LLMs Makefile$(NC)"
 	@echo ""
-	@echo "Building:"
-	@echo "  make build            Build the main binary"
-	@echo "  make build-examples   Build all example binaries"
-	@echo "  make build-example    Build a specific example (usage: make build-example EXAMPLE=simple)"
-	@echo "  make build-all        Build main binary and all examples"
+	@echo "$(GREEN)Quick Targets:$(NC)"
+	@echo "  $(YELLOW)make build$(NC)         Build the main binary"
+	@echo "  $(YELLOW)make test$(NC)          Run unit tests"
+	@echo "  $(YELLOW)make check$(NC)         Run format, vet, and lint"
+	@echo "  $(YELLOW)make dev$(NC)           Run check, test, and build"
 	@echo ""
-	@echo "Testing:"
-	@echo "  make test             Run all tests (excluding integration, multi-provider, and stress tests)"
-	@echo "  make test-all         Run all tests including integration, multi-provider, and stress tests"
-	@echo "  make test-pkg         Run tests for a specific package (usage: make test-pkg PKG=schema/validation)"
-	@echo "  make test-func        Run a specific test function (usage: make test-func PKG=schema/validation FUNC=TestValidation)"
-	@echo "  make test-short       Run only short tests (useful for quick checks)"
-	@echo "  make test-short-pkg   Run only short tests for a specific package (usage: make test-short-pkg PKG=schema/validation)"
-	@echo "  make test-cmd         Test the command line client"
-	@echo "  make test-examples    Test all examples (or specific with EXAMPLE=name)"
-	@echo "  make test-integration Run all integration tests (requires API keys)"
-	@echo "  make test-integration-mock Run integration tests that don't require API keys"
-	@echo "  make test-multi-provider Run multi-provider tests"
-	@echo "  make test-stress      Run all stress tests"
-	@echo "  make test-stress-provider Run provider stress tests"
-	@echo "  make test-stress-agent Run agent workflow stress tests"
-	@echo "  make test-stress-structured Run structured output processor stress tests"
-	@echo "  make test-stress-pool Run memory pool stress tests"
-	@echo "  make test-profiling   Run profiling package tests"
-	@echo "  make test-metrics    Run metrics package tests"
-	@echo "  make test-profiling-all Run all profiling and metrics tests"
+	@echo "$(GREEN)Build Targets:$(NC)"
+	@echo "  $(YELLOW)make build-debug$(NC)   Build with debug logging (use GO_LLMS_DEBUG=all)"
+	@echo "  $(YELLOW)make build-all$(NC)     Build main binary and all examples"
+	@echo "  $(YELLOW)make build-example EXAMPLE=simple$(NC)  Build specific example"
 	@echo ""
-	@echo "Benchmarking:"
-	@echo "  make benchmark        Run benchmarks in the benchmarks directory"
-	@echo "  make benchmark-all    Run all benchmarks across the codebase"
-	@echo "  make benchmark-pkg    Run benchmarks for a specific package (usage: make benchmark-pkg PKG=schema/validation)"
-	@echo "  make benchmark-specific Run a specific benchmark (usage: make benchmark-specific BENCH=BenchmarkConsensus)"
+	@echo "$(GREEN)Test Targets:$(NC)"
+	@echo "  $(YELLOW)make test-quick$(NC)    Run quick unit tests"
+	@echo "  $(YELLOW)make test-all$(NC)      Run all tests (unit + integration + stress)"
+	@echo "  $(YELLOW)make test-debug$(NC)    Run tests with debug logging"
+	@echo "  $(YELLOW)make test-pkg PKG=schema/validation$(NC)  Test specific package"
+	@echo "  $(YELLOW)make test-func PKG=schema/validation FUNC=TestArray$(NC)  Test specific function"
 	@echo ""
-	@echo "Profiling:"
-	@echo "  make profile          Run all profile types (CPU, memory, and block)"
-	@echo "  make profile-cpu      Run benchmarks with CPU profiling"
-	@echo "  make profile-mem      Run benchmarks with memory profiling"
-	@echo "  make profile-block    Run benchmarks with block profiling (for concurrency issues)"
+	@echo "$(GREEN)Benchmark & Profile:$(NC)"
+	@echo "  $(YELLOW)make bench$(NC)         Run benchmarks"
+	@echo "  $(YELLOW)make profile-cpu$(NC)   Profile CPU usage"
+	@echo "  $(YELLOW)make profile-mem$(NC)   Profile memory usage"
 	@echo ""
-	@echo "Coverage:"
-	@echo "  make coverage         Generate test coverage report"
-	@echo "  make coverage-pkg     Generate test coverage report for a specific package (usage: make coverage-pkg PKG=schema/validation)"
-	@echo "  make coverage-view    Generate coverage report and open it in a browser"
+	@echo "$(GREEN)Code Quality:$(NC)"
+	@echo "  $(YELLOW)make quality$(NC)       Run all code quality checks"
+	@echo "  $(YELLOW)make coverage$(NC)      Generate coverage report"
+	@echo "  $(YELLOW)make coverage-view$(NC) Generate and open coverage report"
 	@echo ""
-	@echo "Code Quality:"
-	@echo "  make lint             Run linters"
-	@echo "  make install-lint     Install golangci-lint"
-	@echo "  make fmt              Format Go code"
-	@echo "  make vet              Run Go vet"
+	@echo "$(GREEN)Other:$(NC)"
+	@echo "  $(YELLOW)make deps$(NC)          Tidy and download dependencies"
+	@echo "  $(YELLOW)make clean$(NC)         Clean build artifacts"
+	@echo "  $(YELLOW)make watch$(NC)         Watch for changes and rebuild (requires entr)"
 	@echo ""
-	@echo "Dependencies:"
-	@echo "  make deps             Manage all dependencies (tidy and download)"
-	@echo "  make deps-tidy        Tidy Go module dependencies"
-	@echo "  make deps-download    Download Go module dependencies"
+	@echo "$(BLUE)Debug Logging:$(NC)"
+	@echo "  Build with debug: $(YELLOW)make build-debug$(NC)"
+	@echo "  Test with debug:  $(YELLOW)make test-debug$(NC)"
+	@echo "  Set GO_LLMS_DEBUG=all or GO_LLMS_DEBUG=param_cache,schema"
 	@echo ""
-	@echo "Maintenance:"
-	@echo "  make clean            Clean build artifacts"
-	@echo "  make clean-all        Clean everything including Go cache"
-	@echo "  make all              Default target: clean, test, build, and build examples"
-	@echo "  make help             Show this help message"
+	@echo "$(BLUE)Examples:$(NC)"
+	@echo "  $(YELLOW)make test-pkg PKG=llm/provider$(NC)"
+	@echo "  $(YELLOW)make bench-specific BENCH=BenchmarkConsensus$(NC)"
+	@echo "  $(YELLOW)GO_LLMS_DEBUG=param_cache make test-debug$(NC)"

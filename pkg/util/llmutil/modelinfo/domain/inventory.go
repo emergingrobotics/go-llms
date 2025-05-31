@@ -1,5 +1,8 @@
 package domain
 
+// ABOUTME: Domain models for model inventory and information
+// ABOUTME: Defines structures for model metadata and capabilities
+
 import "time"
 
 // Metadata holds information about the inventory list itself.

@@ -1,5 +1,8 @@
 package main
 
+// ABOUTME: Example demonstrating schema validation with type coercion
+// ABOUTME: Shows how to handle flexible input types and validation rules
+
 import (
 	"fmt"
 	"log"

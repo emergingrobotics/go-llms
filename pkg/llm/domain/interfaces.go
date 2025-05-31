@@ -1,5 +1,8 @@
 package domain
 
+// ABOUTME: Core interfaces for LLM providers including Provider and ModelRegistry
+// ABOUTME: Defines contracts for LLM communication and model discovery
+
 import (
 	"context"
 

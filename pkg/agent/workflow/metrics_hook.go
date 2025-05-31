@@ -1,5 +1,8 @@
 package workflow
 
+// ABOUTME: Metrics collection hook for monitoring agent performance
+// ABOUTME: Tracks execution times, token usage, and tool invocation statistics
+
 import (
 	"context"
 	"sync"

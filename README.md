@@ -606,7 +606,20 @@ The core functionality is fairly complete and working. However, APIs are subject
 
 #### Changelog
 
-**v0.2.6 (Current)**
+**v0.2.7**
+- ✅ **Comprehensive Logging Strategy Implementation**
+  - Completed all 4 phases of logging strategy
+  - Created comprehensive logging documentation at docs/technical/logging.md
+  - Standardized logging across all examples (using log package for consistency)
+  - Added debug infrastructure with build tags (GO_LLMS_DEBUG environment variable)
+  - Removed all direct logging from library code (pkg/)
+  - Improved error messages with context and proper error wrapping
+  - Added Logger interface to profiling package for optional logging
+  - Verified thread safety in all logging paths
+  - Created CONTRIBUTING.md with logging guidelines
+  - Added ABOUTME comments to all Go source files
+
+**v0.2.6**
 - ✅ **Model Discovery and Information System**
   - Added comprehensive model inventory feature with automatic discovery
   - Support for fetching model information from OpenAI, Anthropic, and Google Gemini APIs

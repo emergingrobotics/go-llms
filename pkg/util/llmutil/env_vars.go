@@ -1,6 +1,9 @@
 // Package llmutil provides utility functions for common LLM operations.
 package llmutil
 
+// ABOUTME: Environment variable management for LLM provider configuration
+// ABOUTME: Standardizes environment variable names and retrieval patterns
+
 import (
 	"os"
 	"strconv"

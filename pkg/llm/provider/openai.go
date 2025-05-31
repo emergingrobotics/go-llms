@@ -1,5 +1,8 @@
 package provider
 
+// ABOUTME: OpenAI provider implementation for chat completions API
+// ABOUTME: Supports text/multimodal messages, streaming, and structured output
+
 import (
 	"bufio"
 	"bytes"
@@ -80,7 +83,7 @@ func (p *OpenAIProvider) Generate(ctx context.Context, prompt string, options ..
 	}
 	response, err := p.GenerateMessage(ctx, messages, options...)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("openai: failed to generate message: %w", err)
 	}
 	return response.Content, nil
 }
@@ -316,7 +319,7 @@ func (p *OpenAIProvider) buildOpenAIRequestBody(
 func (p *OpenAIProvider) GenerateMessage(ctx context.Context, messages []domain.Message, options ...domain.Option) (domain.Response, error) {
 	// Validate content types
 	if err := p.validateContentTypesForOpenAI(messages); err != nil {
-		return domain.Response{}, err
+		return domain.Response{}, fmt.Errorf("openai: failed to validate content types: %w", err)
 	}
 
 	// Apply options - reuse the same options object for all requests
@@ -388,7 +391,7 @@ func (p *OpenAIProvider) GenerateMessage(ctx context.Context, messages []domain.
 
 	// Check if there are choices
 	if len(openAIResp.Choices) == 0 {
-		return domain.Response{}, fmt.Errorf("API returned no choices")
+		return domain.Response{}, fmt.Errorf("openai provider (%s): API returned no choices in response", p.model)
 	}
 
 	// Use the response pool to reduce allocations
@@ -434,7 +437,7 @@ func (p *OpenAIProvider) Stream(ctx context.Context, prompt string, options ...d
 func (p *OpenAIProvider) StreamMessage(ctx context.Context, messages []domain.Message, options ...domain.Option) (domain.ResponseStream, error) {
 	// Validate content types
 	if err := p.validateContentTypesForOpenAI(messages); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("openai: failed to validate content types for streaming: %w", err)
 	}
 
 	// Apply options

@@ -1,5 +1,8 @@
 package domain
 
+// ABOUTME: Core interfaces for agent system including Tool and Agent definitions
+// ABOUTME: Establishes contracts for tool execution and agent workflows
+
 import (
 	"context"
 

@@ -1,5 +1,8 @@
 package main
 
+// ABOUTME: Example demonstrating consensus strategy across multiple providers
+// ABOUTME: Shows how to get agreement between different LLM providers
+
 import (
 	"context"
 	"fmt"

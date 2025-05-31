@@ -1,6 +1,9 @@
 // Package workflow provides agent workflow implementations.
 package workflow
 
+// ABOUTME: Manages conversation message history and context for agent workflows
+// ABOUTME: Handles message pruning, token counting, and context window management
+
 import (
 	"sync"
 	"time"

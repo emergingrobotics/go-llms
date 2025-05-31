@@ -1,5 +1,8 @@
 package main
 
+// ABOUTME: Example demonstrating agent workflows with tool calling and structured logging
+// ABOUTME: Shows how to build agents that can use tools like web scraping and calculations
+
 import (
 	"bytes"
 	"context"

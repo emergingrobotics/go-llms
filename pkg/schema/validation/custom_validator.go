@@ -1,5 +1,8 @@
 package validation
 
+// ABOUTME: Custom validation function registry and handler system
+// ABOUTME: Allows registration of user-defined validators for complex rules
+
 import (
 	"fmt"
 	"reflect"

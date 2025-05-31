@@ -1,5 +1,8 @@
 package processor
 
+// ABOUTME: Configuration options for prompt enhancement behavior
+// ABOUTME: Provides customization for schema inclusion and formatting
+
 import (
 	"fmt"
 	"strings"

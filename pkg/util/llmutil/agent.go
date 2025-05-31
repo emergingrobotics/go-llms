@@ -1,5 +1,8 @@
 package llmutil
 
+// ABOUTME: Convenience functions for creating and configuring agents
+// ABOUTME: Simplifies agent setup with sensible defaults and provider integration
+
 import (
 	"context"
 	"fmt"

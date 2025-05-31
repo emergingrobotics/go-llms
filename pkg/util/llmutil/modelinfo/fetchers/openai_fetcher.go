@@ -1,5 +1,8 @@
 package fetchers
 
+// ABOUTME: OpenAI API client for fetching available GPT models
+// ABOUTME: Retrieves model information and capabilities from OpenAI
+
 import (
 	"encoding/json"
 	"fmt"

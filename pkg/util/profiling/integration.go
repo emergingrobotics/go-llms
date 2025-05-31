@@ -1,9 +1,11 @@
 // Package profiling provides utilities for CPU and memory profiling in the Go-LLMs project.
 package profiling
 
+// ABOUTME: Integration profiling utilities for end-to-end performance analysis
+// ABOUTME: Captures detailed metrics across entire LLM operation lifecycle
+
 import (
 	"context"
-	"fmt"
 )
 
 // ProfiledOperation represents a specific operation that can be profiled
@@ -56,12 +58,12 @@ func EnableProfilingForComponent(componentName string) func() {
 	profiler := NewProfiler(componentName)
 	profiler.Enable()
 
-	fmt.Printf("Profiling enabled for component: %s\n", componentName)
-	fmt.Printf("Profiles will be written to: %s\n", profileDir)
+	getLogger().Printf("Profiling enabled for component: %s", componentName)
+	getLogger().Printf("Profiles will be written to: %s", profileDir)
 
 	return func() {
 		profiler.Disable()
-		fmt.Printf("Profiling disabled for component: %s\n", componentName)
+		getLogger().Printf("Profiling disabled for component: %s", componentName)
 	}
 }
 
