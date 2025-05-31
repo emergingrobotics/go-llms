@@ -63,3 +63,7 @@ Welcome to the Go-LLMs documentation reference. This document provides links to 
 - [Coding Practices](/docs/plan/coding-practices.md) - Coding standards and guidelines
 - [Implementation Plan](/docs/plan/implementation-plan.md) - Detailed implementation plan
 - [Project Planning Overview](/docs/plan/README.md) - Overview of planning documents
+
+## Contributing
+
+- [Contributing Guidelines](/CONTRIBUTING.md) - How to contribute to the project, including coding standards and logging guidelines

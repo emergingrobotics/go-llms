@@ -82,3 +82,14 @@
 - [x] P0: Optimize object clearing operations for large response objects
 - [x] P1: Add expiration policy to schema cache to prevent unbounded growth
 - [x] P1: Optimize string builder capacity estimation for complex schemas
+
+## Architecture & Built-in Components (Partially Completed)
+- [x] P0: Analyze consistent logging strategy across codebase (Phase 1 completed)
+  - [x] Audit current logging approaches (stdlib log, slog, fmt.Printf, etc.)
+  - [x] Define consistent logging strategy (created LOGGING_STRATEGY.md)
+  - [x] Phase 1: Documentation
+    - [x] Create logging strategy document
+    - [x] Move strategy document to docs/technical/logging.md
+    - [x] Update README files with logging documentation links
+    - [x] Add logging section to CLAUDE.md
+    - [x] Create CONTRIBUTING.md with logging guidelines

@@ -701,6 +701,10 @@ The core functionality is fairly complete and working. However, APIs are subject
 
 For the latest status and upcoming features, see the [TODO.md](TODO.md) file.
 
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details on how to submit pull requests, report issues, and contribute to the project.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

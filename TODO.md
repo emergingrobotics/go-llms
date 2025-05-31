@@ -31,23 +31,15 @@
 
 ## Architecture & Built-in Components for next release (Immediate - P0)
 - [ ] P0: Analyze consistent logging strategy across codebase
-  - [x] Audit current logging approaches (stdlib log, slog, fmt.Printf, etc.)
-  - [x] Define consistent logging strategy (created LOGGING_STRATEGY.md)
-  - [ ] Phase 1: Documentation
-    - [x] Create logging strategy document
-    - [x] Move strategy document to docs/technical/logging.md
-    - [x] Update README files with logging documentation links
-    - [ ] Add logging section to CLAUDE.md
-    - [ ] Update contributor guidelines
-  - [ ] Phase 2: Standardize Examples
+  - [ ] Phase 2: Standardize Examples (REVISIT)
     - [ ] Convert example programs to consistent `log` package usage
     - [ ] Ensure agent examples properly demonstrate slog with LoggingHook
     - [ ] Remove mixing of log/fmt in the same example
-  - [ ] Phase 3: Debug Infrastructure
+  - [ ] Phase 3: Debug Infrastructure (REVISIT)
     - [ ] Create debug build tags for verbose logging
     - [ ] Convert commented debug prints in param_cache.go to conditional compilation
     - [ ] Document how to build with debug logging enabled
-  - [ ] Phase 4: Core Library Cleanup
+  - [ ] Phase 4: Core Library Cleanup (REVISIT)
     - [ ] Ensure no direct logging in pkg/ (except hooks)
     - [ ] Improve error messages with more context
     - [ ] Add error wrapping where beneficial

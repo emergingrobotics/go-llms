@@ -8,6 +8,11 @@ Go-LLMs is a Go library that provides a unified interface to interact with vario
 
 **Current Version**: v0.2.6 (Released January 30, 2025)
 
+**Recent Updates**:
+- Added comprehensive logging documentation at `docs/technical/logging.md`
+- Created `CONTRIBUTING.md` with contribution guidelines
+- Completed Phase 1 of logging strategy implementation (documentation)
+
 ## Common Development Commands
 
 ### Build Commands
@@ -218,6 +223,37 @@ Integration tests with real providers are skipped by default unless the correspo
 6. Add comprehensive tests for new functionality
 7. Use benchmark tests to verify performance of optimizations
 8. Implement both the mock and real versions for any new provider
+
+## Logging Guidelines
+
+The codebase follows specific logging patterns to maintain performance and give users control:
+
+1. **Library Code (pkg/)**: No direct logging - return errors with context instead
+   ```go
+   // Good
+   return fmt.Errorf("failed to parse response: %w", err)
+   
+   // Bad - don't log in library
+   log.Printf("Error: %v", err)
+   ```
+
+2. **Examples**: Use `log` package for consistency
+   - Agent examples can use `slog` to demonstrate LoggingHook
+   - Don't mix `log` and `fmt` in the same example
+
+3. **CLI Tools**: Use `fmt` for output control
+   - `fmt.Printf/Println` for normal output
+   - `fmt.Fprintf(os.Stderr, ...)` for errors
+
+4. **Thread Safety**: All logging approaches are concurrent-safe
+   - `slog` and `log` packages are thread-safe
+   - No shared mutable logging state
+
+5. **Debug Logging**: Use build tags (coming soon)
+   - Will replace commented debug prints
+   - Build with `-tags debug` for verbose logging
+
+See [docs/technical/logging.md](docs/technical/logging.md) for the complete logging strategy.
 
 ## Current Development Focus
 
