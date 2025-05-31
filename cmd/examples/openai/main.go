@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 
@@ -30,7 +29,7 @@ func main() {
 	apiKey := os.Getenv("OPENAI_API_KEY")
 	if apiKey == "" {
 		// If no API key, use mock provider instead
-		fmt.Println("No OPENAI_API_KEY environment variable found. Using mock provider instead.")
+		log.Println("No OPENAI_API_KEY environment variable found. Using mock provider instead.")
 		runWithMockProvider()
 		return
 	}
@@ -51,7 +50,7 @@ func main() {
 			orgOption,
 		)
 
-		fmt.Println("Using OpenAI organization ID:", orgID)
+		log.Println("Using OpenAI organization ID:", orgID)
 	} else {
 		// No organization ID provided
 		openaiProvider = provider.NewOpenAIProvider(
@@ -111,11 +110,11 @@ func main() {
 		Required: []string{"title", "ingredients", "steps", "cookTime", "servings"},
 	}
 
-	fmt.Println("Go-LLMs OpenAI Example")
-	fmt.Println("======================")
+	log.Println("Go-LLMs OpenAI Example")
+	log.Println("======================")
 
 	// Example 1: Simple generation
-	fmt.Println("\nExample 1: Simple generation")
+	log.Println("\nExample 1: Simple generation")
 	response, err := openaiProvider.Generate(
 		context.Background(),
 		"Explain what Go channels are in a paragraph",
@@ -123,10 +122,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("Generation error: %v", err)
 	}
-	fmt.Printf("Response: %s\n", response)
+	log.Printf("Response: %s\n", response)
 
 	// Example 2: Using message-based conversation with system role
-	fmt.Println("\nExample 2: Message-based conversation")
+	log.Println("\nExample 2: Message-based conversation")
 	messages := []domain.Message{
 		domain.NewTextMessage(domain.RoleSystem, "You are a helpful coding assistant specializing in Go."),
 		domain.NewTextMessage(domain.RoleUser, "What's the difference between a slice and an array in Go?"),
@@ -135,10 +134,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("Message generation error: %v", err)
 	}
-	fmt.Printf("Response: %s\n", messageResponse.Content)
+	log.Printf("Response: %s\n", messageResponse.Content)
 
 	// Example 3: Structured output with schema
-	fmt.Println("\nExample 3: Structured recipe generation with schema")
+	log.Println("\nExample 3: Structured recipe generation with schema")
 
 	// Enhance the prompt with schema information
 	prompt := "Generate a simple vegetarian pasta recipe"
@@ -167,23 +166,23 @@ func main() {
 	}
 
 	// Display the recipe
-	fmt.Printf("Recipe: %s\n", recipe.Title)
-	fmt.Printf("Difficulty: %s\n", recipe.Difficulty)
-	fmt.Printf("Prep time: %d minutes, Cook time: %d minutes, Servings: %d\n",
+	log.Printf("Recipe: %s\n", recipe.Title)
+	log.Printf("Difficulty: %s\n", recipe.Difficulty)
+	log.Printf("Prep time: %d minutes, Cook time: %d minutes, Servings: %d\n",
 		recipe.PrepTime, recipe.CookTime, recipe.Servings)
 
-	fmt.Println("\nIngredients:")
+	log.Println("\nIngredients:")
 	for _, ingredient := range recipe.Ingredients {
-		fmt.Printf("- %s\n", ingredient)
+		log.Printf("- %s\n", ingredient)
 	}
 
-	fmt.Println("\nSteps:")
+	log.Println("\nSteps:")
 	for i, step := range recipe.Steps {
-		fmt.Printf("%d. %s\n", i+1, step)
+		log.Printf("%d. %s\n", i+1, step)
 	}
 
 	// Example 4: Stream the response
-	fmt.Println("\nExample 4: Streaming response")
+	log.Println("\nExample 4: Streaming response")
 	stream, err := openaiProvider.Stream(
 		context.Background(),
 		"List 3 benefits of Go's garbage collector in short bullet points",
@@ -192,11 +191,11 @@ func main() {
 		log.Fatalf("Stream error: %v", err)
 	}
 
-	fmt.Println("Streamed Response:")
+	log.Println("Streamed Response:")
 	for token := range stream {
-		fmt.Print(token.Text)
+		log.Print(token.Text)
 		if token.Finished {
-			fmt.Println()
+			log.Println()
 		}
 	}
 }
@@ -244,15 +243,15 @@ func runWithMockProvider() {
 		return "This is a mock response for prompt: " + prompt, nil
 	})
 
-	fmt.Println("Go-LLMs Mock Example (simulating OpenAI)")
-	fmt.Println("========================================")
+	log.Println("Go-LLMs Mock Example (simulating OpenAI)")
+	log.Println("========================================")
 
-	fmt.Println("\nExample 1: Simple generation")
+	log.Println("\nExample 1: Simple generation")
 	response, _ := mockProvider.Generate(
 		context.Background(),
 		"Explain what Go channels are in a paragraph",
 	)
-	fmt.Printf("Response: %s\n", response)
+	log.Printf("Response: %s\n", response)
 
 	// See the rest of the examples in the main function...
 }

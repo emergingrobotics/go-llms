@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 
 	"github.com/lexlapax/go-llms/pkg/llm/provider"
@@ -39,19 +38,19 @@ func main() {
 	processor := structuredProcessor.NewStructuredProcessor(validator)
 	promptEnhancer := structuredProcessor.NewPromptEnhancer()
 
-	fmt.Println("Go-LLMs Simple Example")
-	fmt.Println("======================")
+	log.Println("Go-LLMs Simple Example")
+	log.Println("======================")
 
 	// Example 1: Using the mock provider with a simple prompt
-	fmt.Println("\nExample 1: Simple generation")
+	log.Println("\nExample 1: Simple generation")
 	response, err := llmProvider.Generate(context.Background(), "Tell me about Go")
 	if err != nil {
 		log.Fatalf("Generation error: %v", err)
 	}
-	fmt.Printf("Response: %s\n", response)
+	log.Printf("Response: %s\n", response)
 
 	// Example 2: Using the mock provider with schema
-	fmt.Println("\nExample 2: Structured generation with schema")
+	log.Println("\nExample 2: Structured generation with schema")
 	result, err := llmProvider.GenerateWithSchema(
 		context.Background(),
 		"Generate information about a person",
@@ -63,25 +62,25 @@ func main() {
 
 	// Pretty print the result
 	resultJSON, _ := json.MarshalIndent(result, "", "  ")
-	fmt.Printf("Structured Response:\n%s\n", string(resultJSON))
+	log.Printf("Structured Response:\n%s\n", string(resultJSON))
 
 	// Example 3: Streaming responses
-	fmt.Println("\nExample 3: Streaming response")
+	log.Println("\nExample 3: Streaming response")
 	stream, err := llmProvider.Stream(context.Background(), "Tell me about Go")
 	if err != nil {
 		log.Fatalf("Stream error: %v", err)
 	}
 
-	fmt.Print("Streamed Response: ")
+	log.Print("Streamed Response: ")
 	for token := range stream {
-		fmt.Print(token.Text)
+		log.Print(token.Text)
 		if token.Finished {
-			fmt.Println()
+			log.Println()
 		}
 	}
 
 	// Example a raw LLM response with the structured processor
-	fmt.Println("\nExample 4: Processing raw outputs with the structured processor")
+	log.Println("\nExample 4: Processing raw outputs with the structured processor")
 
 	// Simulate a raw LLM response that contains JSON with some extra text
 	rawResponse := `Here's the information about the person:
@@ -102,21 +101,21 @@ func main() {
 
 	// Pretty print the processed result
 	processedJSON, _ := json.MarshalIndent(processedResult, "", "  ")
-	fmt.Printf("Processed Response:\n%s\n", string(processedJSON))
+	log.Printf("Processed Response:\n%s\n", string(processedJSON))
 
 	// Example 5: Processing raw outputs into a typed struct
-	fmt.Println("\nExample 5: Processing raw outputs into a typed struct")
+	log.Println("\nExample 5: Processing raw outputs into a typed struct")
 	var person Person
 	err = processor.ProcessTyped(schema, rawResponse, &person)
 	if err != nil {
 		log.Fatalf("Typed processing error: %v", err)
 	}
 
-	fmt.Printf("Person struct: Name=%s, Age=%d, Email=%s\n",
+	log.Printf("Person struct: Name=%s, Age=%d, Email=%s\n",
 		person.Name, person.Age, person.Email)
 
 	// Example 6: Enhancing prompts with schema information
-	fmt.Println("\nExample 6: Enhancing prompts with schema information")
+	log.Println("\nExample 6: Enhancing prompts with schema information")
 	prompt := "Generate information about a person"
 
 	enhancedPrompt, err := promptEnhancer.Enhance(prompt, schema)
@@ -124,11 +123,11 @@ func main() {
 		log.Fatalf("Prompt enhancement error: %v", err)
 	}
 
-	fmt.Println("Original prompt:", prompt)
-	fmt.Println("Enhanced prompt snippet (first 100 chars):", truncate(enhancedPrompt, 100))
+	log.Println("Original prompt:", prompt)
+	log.Println("Enhanced prompt snippet (first 100 chars):", truncate(enhancedPrompt, 100))
 
 	// Example 7: Enhancing prompts with additional options
-	fmt.Println("\nExample 7: Enhancing prompts with examples")
+	log.Println("\nExample 7: Enhancing prompts with examples")
 	options := map[string]interface{}{
 		"instructions": "Make sure the person has a realistic name and email",
 		"examples": []map[string]interface{}{
@@ -145,7 +144,7 @@ func main() {
 		log.Fatalf("Prompt enhancement with options error: %v", err)
 	}
 
-	fmt.Println("Enhanced prompt with options snippet (first 100 chars):",
+	log.Println("Enhanced prompt with options snippet (first 100 chars):",
 		truncate(enhancedPromptWithOptions, 100))
 }
 

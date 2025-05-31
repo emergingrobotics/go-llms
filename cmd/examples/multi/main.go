@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -17,7 +18,7 @@ func main() {
 	geminiKey := os.Getenv("GEMINI_API_KEY")
 
 	if openaiKey == "" && anthropicKey == "" && geminiKey == "" {
-		fmt.Println("No API keys found. Using mock providers for demonstration.")
+		log.Println("No API keys found. Using mock providers for demonstration.")
 		runWithMockProviders()
 		return
 	}
@@ -33,7 +34,7 @@ func main() {
 		if orgID != "" {
 			// Add organization option if provided
 			openaiOptions = append(openaiOptions, domain.NewOpenAIOrganizationOption(orgID))
-			fmt.Println("Using OpenAI with organization ID:", orgID)
+			log.Println("Using OpenAI with organization ID:", orgID)
 		}
 
 		openaiProvider := provider.NewOpenAIProvider(
@@ -64,7 +65,7 @@ func main() {
 			Name:     "anthropic",
 		})
 
-		fmt.Println("Using Anthropic with system prompt option")
+		log.Println("Using Anthropic with system prompt option")
 	}
 
 	if geminiKey != "" {
@@ -84,7 +85,7 @@ func main() {
 			Name:     "gemini",
 		})
 
-		fmt.Println("Using Gemini with generation config options")
+		log.Println("Using Gemini with generation config options")
 	}
 
 	if len(providers) < 2 {
@@ -116,8 +117,8 @@ func runWithMockProviders() {
 	}
 
 	// Create a multi-provider with the fastest strategy
-	fmt.Println("\n=== Multi-Provider Example with Simulated Providers ===")
-	fmt.Println("\nStrategy: FASTEST (returns the fastest response)")
+	log.Println("\n=== Multi-Provider Example with Simulated Providers ===")
+	log.Println("\nStrategy: FASTEST (returns the fastest response)")
 	fastestProvider := provider.NewMultiProvider(providers, provider.StrategyFastest)
 
 	// Record start time
@@ -126,14 +127,14 @@ func runWithMockProviders() {
 	elapsed := time.Since(start)
 
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+		log.Printf("Error: %v\n", err)
 	} else {
-		fmt.Printf("Response: %s\n", response)
-		fmt.Printf("Time taken: %v\n", elapsed)
+		log.Printf("Response: %s\n", response)
+		log.Printf("Time taken: %v\n", elapsed)
 	}
 
 	// Create a multi-provider with the primary strategy
-	fmt.Println("\nStrategy: PRIMARY (tries primary first, falls back to others)")
+	log.Println("\nStrategy: PRIMARY (tries primary first, falls back to others)")
 	primaryProvider := provider.NewMultiProvider(providers, provider.StrategyPrimary).
 		WithPrimaryProvider(0) // Use slow provider as primary
 
@@ -143,34 +144,34 @@ func runWithMockProviders() {
 	elapsed = time.Since(start)
 
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+		log.Printf("Error: %v\n", err)
 	} else {
-		fmt.Printf("Response: %s\n", response)
-		fmt.Printf("Time taken: %v\n", elapsed)
+		log.Printf("Response: %s\n", response)
+		log.Printf("Time taken: %v\n", elapsed)
 	}
 
 	// Demonstrate streaming with MultiProvider
-	fmt.Println("\nStreaming with MultiProvider:")
+	log.Println("\nStreaming with MultiProvider:")
 	stream, err := fastestProvider.Stream(context.Background(), "List three benefits of Go's garbage collector")
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+		log.Printf("Error: %v\n", err)
 		return
 	}
 
-	fmt.Println("Streaming response:")
+	log.Println("Streaming response:")
 	for token := range stream {
-		fmt.Print(token.Text)
+		log.Print(token.Text)
 		if token.Finished {
-			fmt.Println()
+			log.Println()
 		}
 	}
 }
 
 func runWithRealProviders(providers []provider.ProviderWeight) {
-	fmt.Println("\n=== Multi-Provider Example with Real Providers ===")
+	log.Println("\n=== Multi-Provider Example with Real Providers ===")
 
 	// Create a multi-provider with the fastest strategy
-	fmt.Println("\nStrategy: FASTEST (returns the fastest response)")
+	log.Println("\nStrategy: FASTEST (returns the fastest response)")
 	fastestProvider := provider.NewMultiProvider(providers, provider.StrategyFastest)
 
 	// Record start time
@@ -179,14 +180,14 @@ func runWithRealProviders(providers []provider.ProviderWeight) {
 	elapsed := time.Since(start)
 
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+		log.Printf("Error: %v\n", err)
 	} else {
-		fmt.Printf("Response: %s\n", response)
-		fmt.Printf("Time taken: %v\n", elapsed)
+		log.Printf("Response: %s\n", response)
+		log.Printf("Time taken: %v\n", elapsed)
 	}
 
 	// Create a multi-provider with the primary strategy
-	fmt.Println("\nStrategy: PRIMARY (tries primary first, falls back to others)")
+	log.Println("\nStrategy: PRIMARY (tries primary first, falls back to others)")
 	primaryProvider := provider.NewMultiProvider(providers, provider.StrategyPrimary).
 		WithPrimaryProvider(0)
 
@@ -196,14 +197,14 @@ func runWithRealProviders(providers []provider.ProviderWeight) {
 	elapsed = time.Since(start)
 
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+		log.Printf("Error: %v\n", err)
 	} else {
-		fmt.Printf("Response: %s\n", response)
-		fmt.Printf("Time taken: %v\n", elapsed)
+		log.Printf("Response: %s\n", response)
+		log.Printf("Time taken: %v\n", elapsed)
 	}
 
 	// Test message-based conversation
-	fmt.Println("\nMessage-based conversation:")
+	log.Println("\nMessage-based conversation:")
 	messages := []domain.Message{
 		domain.NewTextMessage(domain.RoleSystem, "You are a Go programming expert."),
 		domain.NewTextMessage(domain.RoleUser, "What are some best practices for error handling in Go?"),
@@ -214,10 +215,10 @@ func runWithRealProviders(providers []provider.ProviderWeight) {
 	elapsed = time.Since(start)
 
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+		log.Printf("Error: %v\n", err)
 	} else {
-		fmt.Printf("Response: %s\n", messageResponse.Content)
-		fmt.Printf("Time taken: %v\n", elapsed)
+		log.Printf("Response: %s\n", messageResponse.Content)
+		log.Printf("Time taken: %v\n", elapsed)
 	}
 }
 

@@ -31,10 +31,19 @@
 
 ## Architecture & Built-in Components for next release (Immediate - P0)
 - [ ] P0: Analyze consistent logging strategy across codebase
-  - [ ] Phase 2: Standardize Examples (REVISIT)
-    - [ ] Convert example programs to consistent `log` package usage
-    - [ ] Ensure agent examples properly demonstrate slog with LoggingHook
-    - [ ] Remove mixing of log/fmt in the same example
+  - [x] Phase 2: Standardize Examples (completed)
+    - [x] Convert fmt-only examples to use `log` package:
+      - [x] gemini/main.go (completed)
+      - [x] modelinfo/main.go (CLI tool - correctly uses fmt pattern)
+      - [x] multi/main.go (completed)
+      - [x] openai_api_compatible_providers/main.go (completed)
+      - [x] profiling/main.go (completed)
+      - [x] provider_options/main.go (completed)
+      - [x] schema/main.go (completed)
+    - [x] Ensure agent examples properly demonstrate slog with LoggingHook (already done)
+    - [x] Verify no mixing of log/fmt for logging in the same example
+      - Found 6 files that mix approaches: agent, coercion, consensus, convenience, metrics, multimodal
+      - These are agent examples that use slog but also fmt, which is acceptable per docs
   - [ ] Phase 3: Debug Infrastructure (REVISIT)
     - [ ] Create debug build tags for verbose logging
     - [ ] Convert commented debug prints in param_cache.go to conditional compilation

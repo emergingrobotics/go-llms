@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -109,35 +109,35 @@ type Order struct {
 
 // displaySchema prints a schema in a formatted JSON
 func displaySchema(name string, schema *domain.Schema) {
-	fmt.Printf("\n=== %s Schema ===\n", name)
+	log.Printf("\n=== %s Schema ===\n", name)
 
 	// Convert schema to JSON
 	jsonBytes, err := json.MarshalIndent(schema, "", "  ")
 	if err != nil {
-		fmt.Printf("Error marshaling schema: %v\n", err)
+		log.Printf("Error marshaling schema: %v\n", err)
 		return
 	}
 
 	// Print the JSON schema
-	fmt.Println(string(jsonBytes))
-	fmt.Println()
+	log.Println(string(jsonBytes))
+	log.Println()
 }
 
 // showSchemaUsageWithLLM demonstrates how to use a generated schema with an LLM
 func showSchemaUsageWithLLM(schema *domain.Schema) {
-	fmt.Println("=== Using Generated Schema with LLM ===")
+	log.Println("=== Using Generated Schema with LLM ===")
 
 	// Example prompt that would generate a product
 	prompt := "Generate a detailed product description for a new smartphone with high-end specifications. Include all required fields."
 
 	// This is just a simulation - in a real scenario, this would call the LLM
-	fmt.Println("Prompt:", prompt)
-	fmt.Println("* In a real application, this would send the prompt to an LLM with the schema *")
-	fmt.Println("* The LLM would generate a response conforming to the Product schema *")
-	fmt.Println("* The processor would validate and parse the response into a Product struct *")
+	log.Println("Prompt:", prompt)
+	log.Println("* In a real application, this would send the prompt to an LLM with the schema *")
+	log.Println("* The LLM would generate a response conforming to the Product schema *")
+	log.Println("* The processor would validate and parse the response into a Product struct *")
 
 	// Example of how you would call the processor in a real application
-	fmt.Println("\nExample code for processing with schema:")
+	log.Println("\nExample code for processing with schema:")
 
 	exampleCode := `
     // Create processor with LLM provider
@@ -151,27 +151,25 @@ func showSchemaUsageWithLLM(schema *domain.Schema) {
     }
     
     // Use the typed product object
-    fmt.Printf("Created product: %s ($%.2f)\n", product.Name, product.Price)
+    log.Printf("Created product: %s ($%.2f)\n", product.Name, product.Price)
 `
-	fmt.Println(exampleCode)
+	log.Println(exampleCode)
 }
 
 func main() {
 	// Ensure output directory exists
 	schemasDir := "schemas"
 	if err := os.MkdirAll(schemasDir, 0755); err != nil {
-		fmt.Printf("Error creating schemas directory: %v\n", err)
-		return
+		log.Fatalf("Error creating schemas directory: %v\n", err)
 	}
 
 	// Generate and display schemas for various types
-	fmt.Println("Generating JSON Schemas from Go structs...")
+	log.Println("Generating JSON Schemas from Go structs...")
 
 	// Address schema
 	addressSchema, err := reflection.GenerateSchema(Address{})
 	if err != nil {
-		fmt.Printf("Error generating Address schema: %v\n", err)
-		return
+		log.Fatalf("Error generating Address schema: %v\n", err)
 	}
 	displaySchema("Address", addressSchema)
 	writeSchemaToFile(schemasDir+"/address_schema.json", addressSchema)
@@ -179,8 +177,7 @@ func main() {
 	// Customer schema
 	customerSchema, err := reflection.GenerateSchema(Customer{})
 	if err != nil {
-		fmt.Printf("Error generating Customer schema: %v\n", err)
-		return
+		log.Fatalf("Error generating Customer schema: %v\n", err)
 	}
 	displaySchema("Customer", customerSchema)
 	writeSchemaToFile(schemasDir+"/customer_schema.json", customerSchema)
@@ -188,8 +185,7 @@ func main() {
 	// Product schema
 	productSchema, err := reflection.GenerateSchema(Product{})
 	if err != nil {
-		fmt.Printf("Error generating Product schema: %v\n", err)
-		return
+		log.Fatalf("Error generating Product schema: %v\n", err)
 	}
 	displaySchema("Product", productSchema)
 	writeSchemaToFile(schemasDir+"/product_schema.json", productSchema)
@@ -197,29 +193,28 @@ func main() {
 	// Order schema
 	orderSchema, err := reflection.GenerateSchema(Order{})
 	if err != nil {
-		fmt.Printf("Error generating Order schema: %v\n", err)
-		return
+		log.Fatalf("Error generating Order schema: %v\n", err)
 	}
 	displaySchema("Order", orderSchema)
 	writeSchemaToFile(schemasDir+"/order_schema.json", orderSchema)
 
 	// Demonstrate schema usage with LLM
-	fmt.Println("\nDemonstrating schema usage with LLM...")
+	log.Println("\nDemonstrating schema usage with LLM...")
 	showSchemaUsageWithLLM(productSchema)
 
-	fmt.Println("\nAll schemas have been generated and saved to the 'schemas' directory.")
+	log.Println("\nAll schemas have been generated and saved to the 'schemas' directory.")
 }
 
 // writeSchemaToFile saves a schema to a JSON file
 func writeSchemaToFile(filename string, schema *domain.Schema) {
 	jsonBytes, err := json.MarshalIndent(schema, "", "  ")
 	if err != nil {
-		fmt.Printf("Error marshaling schema for file %s: %v\n", filename, err)
+		log.Printf("Error marshaling schema for file %s: %v\n", filename, err)
 		return
 	}
 
 	if err := os.WriteFile(filename, jsonBytes, 0644); err != nil {
-		fmt.Printf("Error writing schema to file %s: %v\n", filename, err)
+		log.Printf("Error writing schema to file %s: %v\n", filename, err)
 		return
 	}
 }

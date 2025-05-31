@@ -7,7 +7,6 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
@@ -439,15 +438,47 @@ func TestGetAvailableModels_FetcherError_Propagation(t *testing.T) {
 		UseCache:  false,
 	}
 
-	_, err := GetAvailableModels(opts)
-	if err == nil {
-		t.Fatal("GetAvailableModels expected an error when a fetcher fails, but got nil")
+	result, err := GetAvailableModels(opts)
+	// With the new behavior, GetAvailableModels returns partial results even when some fetchers fail
+	if err != nil {
+		t.Fatalf("GetAvailableModels should not return an error for partial failures, got: %v", err)
 	}
 
-	if !strings.Contains(err.Error(), "failed to aggregate model data") {
-		t.Errorf("Expected error to be about aggregation failure, got: %v", err)
+	if result == nil {
+		t.Fatal("GetAvailableModels returned nil result")
 	}
-	t.Logf("Got expected error: %v", err)
+
+	// Should have models from Google and Anthropic (not OpenAI which failed)
+	if len(result.Models) == 0 {
+		t.Fatal("GetAvailableModels should return partial results even when one fetcher fails")
+	}
+
+	// Verify we have Google and Anthropic models but not OpenAI
+	hasGoogle := false
+	hasAnthropic := false
+	hasOpenAI := false
+	for _, model := range result.Models {
+		switch model.Provider {
+		case "google":
+			hasGoogle = true
+		case "anthropic":
+			hasAnthropic = true
+		case "openai":
+			hasOpenAI = true
+		}
+	}
+
+	if !hasGoogle {
+		t.Error("Expected Google models in partial results")
+	}
+	if !hasAnthropic {
+		t.Error("Expected Anthropic models in partial results")
+	}
+	if hasOpenAI {
+		t.Error("Should not have OpenAI models since that fetcher failed")
+	}
+
+	t.Logf("Got partial results with %d models", len(result.Models))
 }
 
 // NOTE: To make fetcher URL mocking cleaner, fetchers.go would need to export

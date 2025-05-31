@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -19,8 +19,8 @@ func main() {
 	geminiKey := os.Getenv("GEMINI_API_KEY")
 
 	if openAIKey == "" && anthropicKey == "" && geminiKey == "" {
-		fmt.Println("No API keys found in environment variables.")
-		fmt.Println("Please set at least one of: OPENAI_API_KEY, ANTHROPIC_API_KEY, GEMINI_API_KEY")
+		log.Println("No API keys found in environment variables.")
+		log.Println("Please set at least one of: OPENAI_API_KEY, ANTHROPIC_API_KEY, GEMINI_API_KEY")
 		os.Exit(1)
 	}
 
@@ -29,28 +29,28 @@ func main() {
 	defer cancel()
 
 	// Demonstrate common options
-	fmt.Println("=== Common Provider Options ===")
+	log.Println("=== Common Provider Options ===")
 	demoCommonOptions(ctx, openAIKey, anthropicKey, geminiKey)
 
 	// Demonstrate provider-specific options
-	fmt.Println("\n=== Provider-Specific Options ===")
+	log.Println("\n=== Provider-Specific Options ===")
 	demoProviderSpecificOptions(ctx, openAIKey, anthropicKey, geminiKey)
 
 	// Demonstrate options with environment variables
-	fmt.Println("\n=== Options with Environment Variables ===")
+	log.Println("\n=== Options with Environment Variables ===")
 	demoOptionsWithEnv()
 
 	// Demonstrate the ModelConfig approach
-	fmt.Println("\n=== Using ModelConfig ===")
+	log.Println("\n=== Using ModelConfig ===")
 	demoModelConfig(ctx, openAIKey, anthropicKey, geminiKey)
 }
 
 // demoCommonOptions demonstrates options that work across all providers
 func demoCommonOptions(ctx context.Context, openAIKey, anthropicKey, geminiKey string) {
 	// Create common options
-	fmt.Println("Creating common options:")
-	fmt.Println("- Custom HTTP client with 15s timeout")
-	fmt.Println("- Custom headers")
+	log.Println("Creating common options:")
+	log.Println("- Custom HTTP client with 15s timeout")
+	log.Println("- Custom headers")
 
 	// Create a custom HTTP client with a timeout
 	httpClient := &http.Client{
@@ -66,41 +66,41 @@ func demoCommonOptions(ctx context.Context, openAIKey, anthropicKey, geminiKey s
 
 	// Try to create providers with the common options
 	if openAIKey != "" {
-		fmt.Println("\nCreating OpenAI provider with common options...")
+		log.Println("\nCreating OpenAI provider with common options...")
 		openaiProvider := provider.NewOpenAIProvider(openAIKey, "gpt-4o", httpClientOption, headersOption)
 
 		// Use the provider
 		response, err := openaiProvider.Generate(ctx, "Say hello!")
 		if err != nil {
-			fmt.Printf("OpenAI error: %v\n", err)
+			log.Printf("OpenAI error: %v\n", err)
 		} else {
-			fmt.Printf("OpenAI response: %s\n", response)
+			log.Printf("OpenAI response: %s\n", response)
 		}
 	}
 
 	if anthropicKey != "" {
-		fmt.Println("\nCreating Anthropic provider with common options...")
+		log.Println("\nCreating Anthropic provider with common options...")
 		anthropicProvider := provider.NewAnthropicProvider(anthropicKey, "claude-3-5-sonnet-latest", httpClientOption, headersOption)
 
 		// Use the provider
 		response, err := anthropicProvider.Generate(ctx, "Say hello!")
 		if err != nil {
-			fmt.Printf("Anthropic error: %v\n", err)
+			log.Printf("Anthropic error: %v\n", err)
 		} else {
-			fmt.Printf("Anthropic response: %s\n", response)
+			log.Printf("Anthropic response: %s\n", response)
 		}
 	}
 
 	if geminiKey != "" {
-		fmt.Println("\nCreating Gemini provider with common options...")
+		log.Println("\nCreating Gemini provider with common options...")
 		geminiProvider := provider.NewGeminiProvider(geminiKey, "gemini-2.0-flash-lite", httpClientOption, headersOption)
 
 		// Use the provider
 		response, err := geminiProvider.Generate(ctx, "Say hello!")
 		if err != nil {
-			fmt.Printf("Gemini error: %v\n", err)
+			log.Printf("Gemini error: %v\n", err)
 		} else {
-			fmt.Printf("Gemini response: %s\n", response)
+			log.Printf("Gemini response: %s\n", response)
 		}
 	}
 }
@@ -109,9 +109,9 @@ func demoCommonOptions(ctx context.Context, openAIKey, anthropicKey, geminiKey s
 func demoProviderSpecificOptions(ctx context.Context, openAIKey, anthropicKey, geminiKey string) {
 	// OpenAI-specific options
 	if openAIKey != "" {
-		fmt.Println("\nCreating OpenAI provider with specific options:")
-		fmt.Println("- Organization option")
-		fmt.Println("- Logit bias option")
+		log.Println("\nCreating OpenAI provider with specific options:")
+		log.Println("- Organization option")
+		log.Println("- Logit bias option")
 
 		// Usually you would use your actual org ID
 		orgOption := domain.NewOpenAIOrganizationOption("org-demo")
@@ -127,17 +127,17 @@ func demoProviderSpecificOptions(ctx context.Context, openAIKey, anthropicKey, g
 		// Use the provider
 		response, err := openaiProvider.Generate(ctx, "Say hello in one word!")
 		if err != nil {
-			fmt.Printf("OpenAI error: %v\n", err)
+			log.Printf("OpenAI error: %v\n", err)
 		} else {
-			fmt.Printf("OpenAI response: %s\n", response)
+			log.Printf("OpenAI response: %s\n", response)
 		}
 	}
 
 	// Anthropic-specific options
 	if anthropicKey != "" {
-		fmt.Println("\nCreating Anthropic provider with specific options:")
-		fmt.Println("- System prompt option")
-		fmt.Println("- Metadata option")
+		log.Println("\nCreating Anthropic provider with specific options:")
+		log.Println("- System prompt option")
+		log.Println("- Metadata option")
 
 		systemPromptOption := domain.NewAnthropicSystemPromptOption(
 			"You are a helpful assistant who speaks in a very concise way.")
@@ -154,17 +154,17 @@ func demoProviderSpecificOptions(ctx context.Context, openAIKey, anthropicKey, g
 		// Use the provider
 		response, err := anthropicProvider.Generate(ctx, "Say hello!")
 		if err != nil {
-			fmt.Printf("Anthropic error: %v\n", err)
+			log.Printf("Anthropic error: %v\n", err)
 		} else {
-			fmt.Printf("Anthropic response: %s\n", response)
+			log.Printf("Anthropic response: %s\n", response)
 		}
 	}
 
 	// Gemini-specific options
 	if geminiKey != "" {
-		fmt.Println("\nCreating Gemini provider with specific options:")
-		fmt.Println("- Generation config option (topK)")
-		fmt.Println("- Safety settings option")
+		log.Println("\nCreating Gemini provider with specific options:")
+		log.Println("- Generation config option (topK)")
+		log.Println("- Safety settings option")
 
 		// Generation config with topK
 		generationConfigOption := domain.NewGeminiGenerationConfigOption().WithTopK(20)
@@ -185,56 +185,56 @@ func demoProviderSpecificOptions(ctx context.Context, openAIKey, anthropicKey, g
 		// Use the provider
 		response, err := geminiProvider.Generate(ctx, "Say hello!")
 		if err != nil {
-			fmt.Printf("Gemini error: %v\n", err)
+			log.Printf("Gemini error: %v\n", err)
 		} else {
-			fmt.Printf("Gemini response: %s\n", response)
+			log.Printf("Gemini response: %s\n", response)
 		}
 	}
 }
 
 // demoOptionsWithEnv demonstrates creating options based on environment variables
 func demoOptionsWithEnv() {
-	fmt.Println("The following environment variables are now supported:")
-	fmt.Println("Common options for all providers:")
-	fmt.Println("- LLM_HTTP_TIMEOUT: Timeout in seconds for HTTP client")
-	fmt.Println("- LLM_RETRY_ATTEMPTS: Number of retry attempts for failed requests")
-	fmt.Println("- LLM_RETRY_DELAY: Delay between retries in milliseconds")
+	log.Println("The following environment variables are now supported:")
+	log.Println("Common options for all providers:")
+	log.Println("- LLM_HTTP_TIMEOUT: Timeout in seconds for HTTP client")
+	log.Println("- LLM_RETRY_ATTEMPTS: Number of retry attempts for failed requests")
+	log.Println("- LLM_RETRY_DELAY: Delay between retries in milliseconds")
 
-	fmt.Println("\nProvider-specific options:")
-	fmt.Println("OpenAI:")
-	fmt.Println("- OPENAI_API_KEY: API key")
-	fmt.Println("- OPENAI_MODEL: Model name (default: gpt-4o)")
-	fmt.Println("- OPENAI_BASE_URL: Base URL override")
-	fmt.Println("- OPENAI_ORGANIZATION: Organization ID")
-	fmt.Println("- OPENAI_USE_CASE: Use case (default, streaming, performance, reliability)")
+	log.Println("\nProvider-specific options:")
+	log.Println("OpenAI:")
+	log.Println("- OPENAI_API_KEY: API key")
+	log.Println("- OPENAI_MODEL: Model name (default: gpt-4o)")
+	log.Println("- OPENAI_BASE_URL: Base URL override")
+	log.Println("- OPENAI_ORGANIZATION: Organization ID")
+	log.Println("- OPENAI_USE_CASE: Use case (default, streaming, performance, reliability)")
 
-	fmt.Println("\nAnthropic:")
-	fmt.Println("- ANTHROPIC_API_KEY: API key")
-	fmt.Println("- ANTHROPIC_MODEL: Model name (default: claude-3-5-sonnet-latest)")
-	fmt.Println("- ANTHROPIC_BASE_URL: Base URL override")
-	fmt.Println("- ANTHROPIC_SYSTEM_PROMPT: System prompt")
-	fmt.Println("- ANTHROPIC_USE_CASE: Use case (default, streaming, performance, reliability)")
+	log.Println("\nAnthropic:")
+	log.Println("- ANTHROPIC_API_KEY: API key")
+	log.Println("- ANTHROPIC_MODEL: Model name (default: claude-3-5-sonnet-latest)")
+	log.Println("- ANTHROPIC_BASE_URL: Base URL override")
+	log.Println("- ANTHROPIC_SYSTEM_PROMPT: System prompt")
+	log.Println("- ANTHROPIC_USE_CASE: Use case (default, streaming, performance, reliability)")
 
-	fmt.Println("\nGemini:")
-	fmt.Println("- GEMINI_API_KEY: API key")
-	fmt.Println("- GEMINI_MODEL: Model name (default: gemini-2.0-flash-lite)")
-	fmt.Println("- GEMINI_BASE_URL: Base URL override")
-	fmt.Println("- GEMINI_GENERATION_CONFIG: JSON string with generation config")
-	fmt.Println("- GEMINI_SAFETY_SETTINGS: JSON string with safety settings")
-	fmt.Println("- GEMINI_USE_CASE: Use case (default, streaming, performance, reliability)")
+	log.Println("\nGemini:")
+	log.Println("- GEMINI_API_KEY: API key")
+	log.Println("- GEMINI_MODEL: Model name (default: gemini-2.0-flash-lite)")
+	log.Println("- GEMINI_BASE_URL: Base URL override")
+	log.Println("- GEMINI_GENERATION_CONFIG: JSON string with generation config")
+	log.Println("- GEMINI_SAFETY_SETTINGS: JSON string with safety settings")
+	log.Println("- GEMINI_USE_CASE: Use case (default, streaming, performance, reliability)")
 
 	// Example 1: Using ProviderFromEnv
-	fmt.Println("\nExample 1: Using ProviderFromEnv to create a provider with all available options")
+	log.Println("\nExample 1: Using ProviderFromEnv to create a provider with all available options")
 	_, providerName, modelName, err := llmutil.ProviderFromEnv()
 	if err != nil {
-		fmt.Printf("Error creating provider from environment: %v\n", err)
+		log.Printf("Error creating provider from environment: %v\n", err)
 		return
 	}
-	fmt.Printf("Created %s provider using model %s from environment variables\n",
+	log.Printf("Created %s provider using model %s from environment variables\n",
 		providerName, modelName)
 
 	// Example 2: Using ModelConfig with environment variable fallback
-	fmt.Println("\nExample 2: Using ModelConfig with environment variable fallback")
+	log.Println("\nExample 2: Using ModelConfig with environment variable fallback")
 	config := llmutil.ModelConfig{
 		Provider: "openai",
 		// API key and model will be sourced from environment if not provided
@@ -242,14 +242,14 @@ func demoOptionsWithEnv() {
 
 	_, err = llmutil.CreateProvider(config)
 	if err != nil {
-		fmt.Printf("Error creating provider with config: %v\n", err)
+		log.Printf("Error creating provider with config: %v\n", err)
 		return
 	}
-	fmt.Println("Successfully created provider with environment variable fallback")
+	log.Println("Successfully created provider with environment variable fallback")
 
 	// Example 3: Using use case-specific environment variables
-	fmt.Println("\nExample 3: Using use case-specific environment variables")
-	fmt.Println("Setting OPENAI_USE_CASE=streaming to configure for streaming")
+	log.Println("\nExample 3: Using use case-specific environment variables")
+	log.Println("Setting OPENAI_USE_CASE=streaming to configure for streaming")
 
 	// Save original value to restore later
 	origUseCase := os.Getenv("OPENAI_USE_CASE")
@@ -266,13 +266,13 @@ func demoOptionsWithEnv() {
 
 	_, err = llmutil.CreateProvider(streamingConfig)
 	if err != nil {
-		fmt.Printf("Error creating streaming provider: %v\n", err)
+		log.Printf("Error creating streaming provider: %v\n", err)
 		return
 	}
-	fmt.Println("Successfully created provider with streaming configuration from OPENAI_USE_CASE=streaming")
+	log.Println("Successfully created provider with streaming configuration from OPENAI_USE_CASE=streaming")
 
 	// Example 4: Mixing explicit config and environment variables
-	fmt.Println("\nExample 4: Mixing explicit config and environment variables")
+	log.Println("\nExample 4: Mixing explicit config and environment variables")
 	mixedConfig := llmutil.ModelConfig{
 		Provider: "openai",
 		Model:    "gpt-4o", // Explicit model
@@ -282,17 +282,17 @@ func demoOptionsWithEnv() {
 
 	_, err = llmutil.CreateProvider(mixedConfig)
 	if err != nil {
-		fmt.Printf("Error creating provider with mixed config: %v\n", err)
+		log.Printf("Error creating provider with mixed config: %v\n", err)
 		return
 	}
-	fmt.Println("Successfully created provider with mixed configuration")
+	log.Println("Successfully created provider with mixed configuration")
 }
 
 // demoModelConfig demonstrates using the ModelConfig approach
 func demoModelConfig(ctx context.Context, openAIKey, anthropicKey, geminiKey string) {
 	// Example using OpenAI with ModelConfig
 	if openAIKey != "" {
-		fmt.Println("\nCreating OpenAI provider with ModelConfig and explicit options:")
+		log.Println("\nCreating OpenAI provider with ModelConfig and explicit options:")
 
 		// Create provider-specific options
 		orgOption := domain.NewOpenAIOrganizationOption("org-demo")
@@ -311,22 +311,22 @@ func demoModelConfig(ctx context.Context, openAIKey, anthropicKey, geminiKey str
 		// Create provider from config
 		llmProvider, err := llmutil.CreateProvider(config)
 		if err != nil {
-			fmt.Printf("Error creating provider: %v\n", err)
+			log.Printf("Error creating provider: %v\n", err)
 			return
 		}
 
 		// Use the provider
 		response, err := llmProvider.Generate(ctx, "Say hello!")
 		if err != nil {
-			fmt.Printf("Provider error: %v\n", err)
+			log.Printf("Provider error: %v\n", err)
 		} else {
-			fmt.Printf("Provider response: %s\n", response)
+			log.Printf("Provider response: %s\n", response)
 		}
 	}
 
 	// Example using Anthropic with ModelConfig
 	if anthropicKey != "" {
-		fmt.Println("\nCreating Anthropic provider with ModelConfig and explicit options:")
+		log.Println("\nCreating Anthropic provider with ModelConfig and explicit options:")
 
 		// Create provider-specific options
 		systemPromptOption := domain.NewAnthropicSystemPromptOption(
@@ -345,16 +345,16 @@ func demoModelConfig(ctx context.Context, openAIKey, anthropicKey, geminiKey str
 		// Create provider from config
 		llmProvider, err := llmutil.CreateProvider(config)
 		if err != nil {
-			fmt.Printf("Error creating provider: %v\n", err)
+			log.Printf("Error creating provider: %v\n", err)
 			return
 		}
 
 		// Use the provider
 		response, err := llmProvider.Generate(ctx, "Say hello!")
 		if err != nil {
-			fmt.Printf("Provider error: %v\n", err)
+			log.Printf("Provider error: %v\n", err)
 		} else {
-			fmt.Printf("Provider response: %s\n", response)
+			log.Printf("Provider response: %s\n", response)
 		}
 	}
 }

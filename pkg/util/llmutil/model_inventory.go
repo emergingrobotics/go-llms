@@ -116,7 +116,13 @@ func GetAvailableModels(opts *GetAvailableModelsOptions) (*domain.ModelInventory
 	modelInfoService := modelinfo.NewModelInfoServiceFunc() // Use the func variable
 	freshInventoryData, err := modelInfoService.AggregateModels()
 	if err != nil {
-		return nil, fmt.Errorf("failed to aggregate model data: %w", err)
+		// AggregateModels returns partial results even when some providers fail
+		// Only return nil if we have no data at all
+		if freshInventoryData == nil || len(freshInventoryData.Models) == 0 {
+			return nil, fmt.Errorf("failed to aggregate model data: %w", err)
+		}
+		// Log the error but continue with partial results
+		fmt.Printf("Warning: Some providers failed during model aggregation: %v\n", err)
 	}
 
 	// If fetching was successful and caching is enabled, save the fresh data.
