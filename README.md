@@ -529,6 +529,7 @@ Go-LLMs provides comprehensive documentation for users and contributors:
 - [Caching Mechanisms](docs/technical/caching.md) - Caching strategies and implementations
 - [Concurrency Patterns](docs/technical/concurrency.md) - Thread safety and concurrent execution
 - [Dependency Reduction Journey](docs/technical/dependency_reduction.md) - Chronicle of dependency reduction from viper/cobra to stdlib
+- [Logging](docs/technical/logging.md) - Logging patterns and best practices
 
 ### CLI Documentation
 

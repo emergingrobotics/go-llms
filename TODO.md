@@ -29,27 +29,45 @@
     - [ ] P1: Implement regression testing to prevent performance degradation (REVISIT)
     - [ ] P2: Add performance acceptance criteria to CI pipeline (REVISIT)
 
-## Architecture & Built-in Components (Immediate - P0)
+## Architecture & Built-in Components for next release (Immediate - P0)
 - [ ] P0: Analyze consistent logging strategy across codebase
-  - [ ] Audit current logging approaches (stdlib log, slog, fmt.Printf, etc.)
-  - [ ] Define consistent logging strategy (e.g., simple: stdlib log, complex: slog)
-  - [ ] Document logging conventions and patterns
-  - [ ] Implement consistent logging throughout codebase
+  - [x] Audit current logging approaches (stdlib log, slog, fmt.Printf, etc.)
+  - [x] Define consistent logging strategy (created LOGGING_STRATEGY.md)
+  - [ ] Phase 1: Documentation
+    - [x] Create logging strategy document
+    - [x] Move strategy document to docs/technical/logging.md
+    - [x] Update README files with logging documentation links
+    - [ ] Add logging section to CLAUDE.md
+    - [ ] Update contributor guidelines
+  - [ ] Phase 2: Standardize Examples
+    - [ ] Convert example programs to consistent `log` package usage
+    - [ ] Ensure agent examples properly demonstrate slog with LoggingHook
+    - [ ] Remove mixing of log/fmt in the same example
+  - [ ] Phase 3: Debug Infrastructure
+    - [ ] Create debug build tags for verbose logging
+    - [ ] Convert commented debug prints in param_cache.go to conditional compilation
+    - [ ] Document how to build with debug logging enabled
+  - [ ] Phase 4: Core Library Cleanup
+    - [ ] Ensure no direct logging in pkg/ (except hooks)
+    - [ ] Improve error messages with more context
+    - [ ] Add error wrapping where beneficial
+    - [ ] Verify thread safety in all logging paths
+    - [ ] update documentation and doc cleanup related to logging. do it throughout all docs in codebase.
   
-- [ ] P0: Analyze structure for exposing built-in tools, agents, and workflows
+- [ ] P1: Analyze structure for exposing built-in tools, agents, and workflows
   - [ ] Review current pkg/agent (including workflow subpackage) structure for extensibility
   - [ ] Design pattern for built-in vs user-defined components
   - [ ] Create registry/discovery mechanism for built-in components
   - [ ] Document guidelines for contributing built-in components
   
-- [ ] P0: Build useful built-in tools
+- [ ] P2: Build useful built-in tools
   - [ ] Research common LLM tool patterns and use cases
   - [ ] Add specific tool tasks to todo.md after research
   - [ ] Review existing tool interface and extend if needed
   - [ ] Implement initial set of built-in tools (list TBD after research)
   - [ ] Add comprehensive examples and documentation
   
-- [ ] P0: Build useful built-in agents  
+- [ ] P3: Build useful built-in agents  
   - [ ] Research common agent patterns (with and without tools)
   - [ ] Add specific agent tasks to todo.md after research
   - [ ] Review existing agent patterns and extend/refactor as needed
@@ -57,7 +75,7 @@
   - [ ] Create agent composition patterns
   - [ ] Add comprehensive examples and documentation
   
-- [ ] P0: Build useful multi-agent workflows
+- [ ] P4: Build useful multi-agent workflows
   - [ ] Research common workflow patterns requiring multiple agents
   - [ ] Add specific workflow tasks to todo.md after research
   - [ ] Review existing workflow patterns in pkg/agent/workflow and extend as needed

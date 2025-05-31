@@ -18,6 +18,7 @@ This directory contains technical documentation for the Go-LLMs library, focusin
 - [Adding a New Provider](new-provider.md) - Step-by-step guide to implementing and integrating a new LLM provider
 - [Multimodal Content Implementation](multimodal-content.md) - Detailed overview of multimodal content support (text, images, files, video, audio)
 - [Dependency Reduction Journey](dependency_reduction.md) - Complete chronicle of our dependency reduction efforts from viper/cobra to stdlib
+- [Logging](logging.md) - Comprehensive guide to logging patterns and best practices in go-llms
 
 ## Target Audience
 
