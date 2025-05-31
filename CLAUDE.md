@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Go-LLMs is a Go library that provides a unified interface to interact with various LLM providers (OpenAI, Anthropic, Google Gemini, etc.) with robust data validation and agent tooling. Key features include structured output processing, a consistent provider interface, agent workflows, and multi-provider strategies.
 
-**Current Version**: v0.2.4 (Released January 17, 2025)
+**Current Version**: v0.2.6 (Released January 30, 2025)
 
 ## Common Development Commands
 
@@ -79,11 +79,56 @@ make fmt
 # Run vet checks
 make vet
 
-# Run linting
+# Run linting (requires golangci-lint)
 make lint
+
+# Install golangci-lint if not present
+make install-lint
 
 # Tidy dependencies
 make deps-tidy
+
+# Download dependencies
+make deps-download
+
+# Combined dependency management (tidy + download)
+make deps
+```
+
+### Clean Commands
+```bash
+# Clean build artifacts
+make clean
+
+# Clean everything including Go cache
+make clean-all
+```
+
+### Coverage Commands
+```bash
+# Generate test coverage report
+make coverage
+
+# Generate coverage for specific package
+make coverage-pkg PKG=schema/validation
+
+# Generate and view coverage report (opens in browser)
+make coverage-view
+```
+
+### Helpful CLI Commands
+```bash
+# List available examples
+ls cmd/examples/
+
+# Run the CLI binary directly after building
+./bin/go-llms
+
+# Run a specific example binary
+./bin/simple
+
+# Run model info fetcher example to check available models
+go run cmd/examples/modelinfo/main.go
 ```
 
 ## Core Architecture
@@ -93,28 +138,40 @@ Go-LLMs follows a vertical slicing approach where code is organized by feature:
 1. **Schema Validation** (`pkg/schema/`):
    - Validates JSON data against predefined schemas
    - Supports type coercion and conditional validation
+   - Key interfaces: `Validator`, `SchemaRepository`, `SchemaGenerator`
+   - Custom validators and complex validation rules (if/then/else, allOf, anyOf, oneOf)
 
 2. **LLM Integration** (`pkg/llm/`):
    - Provider implementations for OpenAI, Anthropic, Google Gemini
    - Multi-provider strategies (Fastest, Primary, Consensus)
    - Interface-based provider option system for configuration
    - Multimodal content support (text, images, files, videos, audio)
+   - Key interfaces: `Provider` (main interface), `ModelRegistry`
+   - Message format with support for multimodal content types
 
 3. **Structured Output Processing** (`pkg/structured/`):
    - Extract structured data from LLM responses
    - Validate against schemas and map to Go structs
    - Schema-based prompt enhancement
+   - Key interfaces: `Processor`, `PromptEnhancer`
+   - JSON extraction with retries and validation
 
 4. **Agent Workflows** (`pkg/agent/`):
    - Tool integration for function calling
    - Message management and context handling
    - Hooks for monitoring and logging
+   - Key interfaces: `Agent`, `Tool`, `Hook`
+   - Generic `RunContext[D]` for type-safe dependency injection
 
 ## Key Design Patterns
 
-1. **Provider Option System**:
-   The codebase uses an interface-based option system that allows for both common and provider-specific configuration. Options are applied during provider creation.
-
+1. **Interface-Based Provider Option System**:
+   The codebase uses a hierarchical interface system for type-safe provider configuration:
+   - Base interface: `ProviderOption`
+   - Provider-specific interfaces: `OpenAIOption`, `AnthropicOption`, `GeminiOption`
+   - Common interface: `CommonOption` (implements all provider interfaces)
+   
+   Options are applied via interface methods rather than type switches:
    ```go
    provider := provider.NewOpenAIProvider(
        apiKey,
@@ -126,15 +183,21 @@ Go-LLMs follows a vertical slicing approach where code is organized by feature:
 
 2. **Multi-Provider Strategies**:
    The codebase supports multiple strategies for working with several LLM providers concurrently:
-   - Fastest Strategy: Uses the first provider to respond
-   - Primary Strategy: Tries primary provider first, with fallbacks
-   - Consensus Strategy: Compares results from multiple providers
+   - **Fastest Strategy**: Returns the first successful response
+   - **Primary Strategy**: Tries primary provider first, falls back to others on failure
+   - **Consensus Strategy**: Compares results from multiple providers for agreement
+   - **Sequential Strategy**: Tries providers in order until one succeeds
 
 3. **Memory Pooling**:
-   The codebase extensively uses sync.Pool for improved performance and reduced GC pressure, particularly in the schema validation and structured output processing.
+   Extensive use of `sync.Pool` for improved performance:
+   - Schema validation objects are pooled and reused
+   - String builders and buffers are pooled
+   - Provider message objects are cached and pooled
 
-4. **Message Caching**:
-   Caching mechanisms are used to avoid redundant conversions and processing, especially for provider message format conversions.
+4. **Message Format and Caching**:
+   - Unified `Message` type supports multimodal content
+   - Provider-specific message conversions are cached
+   - Base64 encoding for binary content, URL references supported
 
 ## Testing Approach
 
@@ -215,9 +278,61 @@ The CLI migration has been completed with the following journey:
 
 For the full journey, see docs/technical/dependency_reduction.md
 
+## Environment Variables for Provider Configuration
+
+The library supports automatic provider configuration through environment variables:
+
+### OpenAI Provider
+- `GO_LLMS_OPENAI_API_KEY`: API key
+- `GO_LLMS_OPENAI_BASE_URL`: Custom base URL
+- `GO_LLMS_OPENAI_ORGANIZATION`: Organization ID
+- `GO_LLMS_OPENAI_MODEL`: Default model
+
+### Anthropic Provider
+- `GO_LLMS_ANTHROPIC_API_KEY`: API key
+- `GO_LLMS_ANTHROPIC_BASE_URL`: Custom base URL
+- `GO_LLMS_ANTHROPIC_MODEL`: Default model
+
+### Gemini Provider
+- `GO_LLMS_GEMINI_API_KEY`: API key
+- `GO_LLMS_GEMINI_BASE_URL`: Custom base URL
+- `GO_LLMS_GEMINI_MODEL`: Default model
+
+### Using Environment Variables
+```go
+// Option factories automatically read from environment
+options := llmutil.BuildProviderOptions(
+    llmutil.GetEnvOptionFactory(),
+    // Additional options...
+)
+```
+
+## Model Information Feature
+
+The library includes a model discovery feature that fetches available models from providers:
+
+```bash
+# Run the model info example to see available models
+go run cmd/examples/modelinfo/main.go
+
+# Or use the built binary
+./bin/modelinfo
+```
+
+The model information service (`pkg/util/llmutil/modelinfo/`) provides:
+- Automatic discovery of available models from providers
+- Caching of model information to reduce API calls
+- File-based cache for persistence across runs
+- Model capability information (context length, features, etc.)
+
 ## Recent Release Status
 
-### v0.2.4 (Current - January 17, 2025)
+### v0.2.6 (Current - January 30, 2025)
+- Documentation updates and consistency improvements
+- Package organization refinements
+- Linting and formatting updates
+
+### v0.2.4 (January 17, 2025)
 - Complete dependency reduction journey
 - Removed all heavy CLI dependencies (koanf, kong)
 - 55% total binary size reduction since v0.1.0
