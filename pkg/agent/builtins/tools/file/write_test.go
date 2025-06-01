@@ -1,0 +1,355 @@
+// ABOUTME: Tests for the file writing tool with all enhanced features
+// ABOUTME: Verifies atomic operations, append mode, backup creation, and permission handling
+
+package file
+
+import (
+	"context"
+	"os"
+	"path/filepath"
+	"testing"
+	"time"
+
+	"github.com/lexlapax/go-llms/pkg/agent/builtins/tools"
+)
+
+func TestWriteFileRegistration(t *testing.T) {
+	// Test that the tool is registered
+	tool, ok := tools.GetTool("file_write")
+	if !ok {
+		t.Fatal("WriteFile tool not registered")
+	}
+	if tool == nil {
+		t.Fatal("WriteFile tool is nil")
+	}
+
+	// Test tool name
+	if tool.Name() != "file_write" {
+		t.Errorf("Expected tool name 'file_write', got '%s'", tool.Name())
+	}
+
+	// Test metadata
+	entries := tools.Tools.Search("file_write")
+	if len(entries) == 0 {
+		t.Fatal("WriteFile tool not found in registry")
+	}
+	
+	meta := entries[0].Metadata
+	if meta.Category != "file" {
+		t.Errorf("Expected category 'file', got '%s'", meta.Category)
+	}
+}
+
+func TestWriteFile_Basic(t *testing.T) {
+	tempDir := t.TempDir()
+	testFile := filepath.Join(tempDir, "output.txt")
+	testContent := "Hello from WriteFile!"
+
+	tool := MustGetWriteFile()
+	ctx := context.Background()
+
+	result, err := tool.Execute(ctx, WriteFileParams{
+		Path:    testFile,
+		Content: testContent,
+	})
+	if err != nil {
+		t.Fatalf("Failed to write file: %v", err)
+	}
+
+	writeResult := result.(*WriteFileResult)
+	if !writeResult.Success {
+		t.Error("Write operation failed")
+	}
+	if writeResult.BytesWritten != len(testContent) {
+		t.Errorf("Expected %d bytes written, got %d", len(testContent), writeResult.BytesWritten)
+	}
+	if writeResult.FileExisted {
+		t.Error("File should not have existed before write")
+	}
+
+	// Verify content
+	content, err := os.ReadFile(testFile)
+	if err != nil {
+		t.Fatalf("Failed to read written file: %v", err)
+	}
+	if string(content) != testContent {
+		t.Errorf("Expected content %q, got %q", testContent, string(content))
+	}
+}
+
+func TestWriteFile_Append(t *testing.T) {
+	tempDir := t.TempDir()
+	testFile := filepath.Join(tempDir, "append.txt")
+
+	// Create initial file
+	initialContent := "Initial content\n"
+	if err := os.WriteFile(testFile, []byte(initialContent), 0644); err != nil {
+		t.Fatalf("Failed to create test file: %v", err)
+	}
+
+	tool := MustGetWriteFile()
+	ctx := context.Background()
+
+	appendContent := "Appended content\n"
+	result, err := tool.Execute(ctx, WriteFileParams{
+		Path:    testFile,
+		Content: appendContent,
+		Append:  true,
+	})
+	if err != nil {
+		t.Fatalf("Failed to append to file: %v", err)
+	}
+
+	writeResult := result.(*WriteFileResult)
+	if !writeResult.FileExisted {
+		t.Error("File should have existed before append")
+	}
+
+	// Verify content
+	content, err := os.ReadFile(testFile)
+	if err != nil {
+		t.Fatalf("Failed to read file: %v", err)
+	}
+	expected := initialContent + appendContent
+	if string(content) != expected {
+		t.Errorf("Expected content %q, got %q", expected, string(content))
+	}
+}
+
+func TestWriteFile_CreateDirs(t *testing.T) {
+	tempDir := t.TempDir()
+	testFile := filepath.Join(tempDir, "nested", "dirs", "file.txt")
+	testContent := "Content in nested directory"
+
+	tool := MustGetWriteFile()
+	ctx := context.Background()
+
+	result, err := tool.Execute(ctx, WriteFileParams{
+		Path:       testFile,
+		Content:    testContent,
+		CreateDirs: true,
+	})
+	if err != nil {
+		t.Fatalf("Failed to write file with directory creation: %v", err)
+	}
+
+	writeResult := result.(*WriteFileResult)
+	if !writeResult.Success {
+		t.Error("Write operation failed")
+	}
+
+	// Verify file exists
+	if _, err := os.Stat(testFile); err != nil {
+		t.Errorf("File was not created: %v", err)
+	}
+}
+
+func TestWriteFile_Atomic(t *testing.T) {
+	tempDir := t.TempDir()
+	testFile := filepath.Join(tempDir, "atomic.txt")
+
+	// Create initial file
+	initialContent := "Initial atomic content"
+	if err := os.WriteFile(testFile, []byte(initialContent), 0644); err != nil {
+		t.Fatalf("Failed to create test file: %v", err)
+	}
+
+	tool := MustGetWriteFile()
+	ctx := context.Background()
+
+	newContent := "New atomic content"
+	result, err := tool.Execute(ctx, WriteFileParams{
+		Path:    testFile,
+		Content: newContent,
+		Atomic:  true,
+	})
+	if err != nil {
+		t.Fatalf("Failed to write atomically: %v", err)
+	}
+
+	writeResult := result.(*WriteFileResult)
+	if !writeResult.Success {
+		t.Error("Atomic write operation failed")
+	}
+
+	// Verify content
+	content, err := os.ReadFile(testFile)
+	if err != nil {
+		t.Fatalf("Failed to read file: %v", err)
+	}
+	if string(content) != newContent {
+		t.Errorf("Expected content %q, got %q", newContent, string(content))
+	}
+}
+
+func TestWriteFile_Backup(t *testing.T) {
+	tempDir := t.TempDir()
+	testFile := filepath.Join(tempDir, "backup.txt")
+
+	// Create initial file
+	initialContent := "Original content to backup"
+	if err := os.WriteFile(testFile, []byte(initialContent), 0644); err != nil {
+		t.Fatalf("Failed to create test file: %v", err)
+	}
+
+	// Wait a moment to ensure different timestamp
+	time.Sleep(10 * time.Millisecond)
+
+	tool := MustGetWriteFile()
+	ctx := context.Background()
+
+	newContent := "New content after backup"
+	result, err := tool.Execute(ctx, WriteFileParams{
+		Path:    testFile,
+		Content: newContent,
+		Backup:  true,
+	})
+	if err != nil {
+		t.Fatalf("Failed to write with backup: %v", err)
+	}
+
+	writeResult := result.(*WriteFileResult)
+	if writeResult.BackupPath == "" {
+		t.Error("Expected backup path, got empty string")
+	}
+
+	// Verify backup exists and contains original content
+	backupContent, err := os.ReadFile(writeResult.BackupPath)
+	if err != nil {
+		t.Fatalf("Failed to read backup file: %v", err)
+	}
+	if string(backupContent) != initialContent {
+		t.Errorf("Backup content mismatch: expected %q, got %q", initialContent, string(backupContent))
+	}
+
+	// Verify main file has new content
+	content, err := os.ReadFile(testFile)
+	if err != nil {
+		t.Fatalf("Failed to read file: %v", err)
+	}
+	if string(content) != newContent {
+		t.Errorf("Expected content %q, got %q", newContent, string(content))
+	}
+
+	// Clean up backup
+	os.Remove(writeResult.BackupPath)
+}
+
+func TestWriteFile_CustomPermissions(t *testing.T) {
+	tempDir := t.TempDir()
+	testFile := filepath.Join(tempDir, "perms.txt")
+
+	tool := MustGetWriteFile()
+	ctx := context.Background()
+
+	result, err := tool.Execute(ctx, WriteFileParams{
+		Path:    testFile,
+		Content: "Test permissions",
+		Mode:    0600, // Read/write for owner only
+	})
+	if err != nil {
+		t.Fatalf("Failed to write file: %v", err)
+	}
+
+	writeResult := result.(*WriteFileResult)
+	if !writeResult.Success {
+		t.Error("Write operation failed")
+	}
+
+	// Verify permissions
+	info, err := os.Stat(testFile)
+	if err != nil {
+		t.Fatalf("Failed to stat file: %v", err)
+	}
+
+	mode := info.Mode().Perm()
+	if mode != 0600 {
+		t.Errorf("Expected permissions 0600, got %o", mode)
+	}
+}
+
+func TestWriteFile_OverwriteProtection(t *testing.T) {
+	tempDir := t.TempDir()
+	testFile := filepath.Join(tempDir, "protected.txt")
+
+	// Create initial file
+	initialContent := "Existing content"
+	if err := os.WriteFile(testFile, []byte(initialContent), 0644); err != nil {
+		t.Fatalf("Failed to create test file: %v", err)
+	}
+
+	tool := MustGetWriteFile()
+	ctx := context.Background()
+
+	// Write without append should overwrite
+	newContent := "Overwritten content"
+	result, err := tool.Execute(ctx, WriteFileParams{
+		Path:    testFile,
+		Content: newContent,
+	})
+	if err != nil {
+		t.Fatalf("Failed to overwrite file: %v", err)
+	}
+
+	writeResult := result.(*WriteFileResult)
+	if !writeResult.FileExisted {
+		t.Error("File should have existed before overwrite")
+	}
+
+	// Verify content was overwritten
+	content, err := os.ReadFile(testFile)
+	if err != nil {
+		t.Fatalf("Failed to read file: %v", err)
+	}
+	if string(content) != newContent {
+		t.Errorf("Expected content %q, got %q", newContent, string(content))
+	}
+}
+
+func TestWriteFile_InvalidPath(t *testing.T) {
+	tool := MustGetWriteFile()
+	ctx := context.Background()
+
+	// Test writing to invalid path
+	_, err := tool.Execute(ctx, WriteFileParams{
+		Path:    "/root/cannot-write-here.txt",
+		Content: "test",
+	})
+	if err == nil {
+		t.Error("Expected error for invalid path")
+	}
+}
+
+func TestWriteFile_EmptyContent(t *testing.T) {
+	tempDir := t.TempDir()
+	testFile := filepath.Join(tempDir, "empty.txt")
+
+	tool := MustGetWriteFile()
+	ctx := context.Background()
+
+	// Write empty content
+	result, err := tool.Execute(ctx, WriteFileParams{
+		Path:    testFile,
+		Content: "",
+	})
+	if err != nil {
+		t.Fatalf("Failed to write empty file: %v", err)
+	}
+
+	writeResult := result.(*WriteFileResult)
+	if !writeResult.Success {
+		t.Error("Write operation failed")
+	}
+	if writeResult.BytesWritten != 0 {
+		t.Errorf("Expected 0 bytes written, got %d", writeResult.BytesWritten)
+	}
+
+	// Verify file exists and is empty
+	info, err := os.Stat(testFile)
+	if err != nil {
+		t.Fatalf("Failed to stat file: %v", err)
+	}
+	if info.Size() != 0 {
+		t.Errorf("Expected empty file, got size %d", info.Size())
+	}
+}
