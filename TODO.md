@@ -15,23 +15,23 @@
 - [x] Update schema.md - Ensure consistency with new structure
 - [x] Update structured.md - Ensure consistency with new structure
 - [x] Update docs/api/README.md - Update index to reflect new modular structure
-### 0.3.2.2 Restructure of User Guide Documentation (docs/user-guide) (look through code that's been implemented)
+### 0.3.2.2 Restructure of User Guide Documentation (docs/user-guide) (look through code that's been implemented) ✅ COMPLETED
 #### Core Getting Started Flow
-- [ ] Create/Update getting-started.md - Installation and first program
-- [ ] Create core-concepts.md - Essential concepts (providers, messages, options)
-- [ ] Create providers.md - Working with different LLM providers (consolidate from existing)
-- [ ] Update structured-output.md - Keep focused on extracting structured data
+- [x] Create/Update getting-started.md - Installation and first program
+- [x] Create core-concepts.md - Essential concepts (providers, messages, options)
+- [x] Create providers.md - Working with different LLM providers (consolidate from existing)
+- [x] Update structured-output.md - Keep focused on extracting structured data
 #### Advanced Features
-- [ ] Create agents.md - Building and using agents (user perspective)
-- [ ] Create tools.md - Merge builtin-tools.md and built-in-components.md
-- [ ] Create workflows.md - Composing agent workflows (user perspective)
-- [ ] Update multimodal-content.md - Keep focused on working with images/content
+- [x] Create agents.md - Building and using agents (user perspective)
+- [x] Create tools.md - Merge builtin-tools.md and built-in-components.md
+- [x] Create workflows.md - Composing agent workflows (user perspective)
+- [x] Update multimodal-content.md - Keep focused on working with images/content
 #### Consolidation and Cleanup
-- [ ] Merge web-search-tool.md content into tools.md
-- [ ] Update examples-gallery.md - Make it a quick reference/index
-- [ ] Delete redundant files after merging
-- [ ] Move old/redundant files to docs/archives
-- [ ] Update docs/user-guide/README.md - New structure and learning path
+- [x] Merge web-search-tool.md content into tools.md
+- [x] Update examples-gallery.md - Make it a quick reference/index
+- [x] Delete redundant files after merging
+- [x] Move old/redundant files to docs/archives
+- [x] Update docs/user-guide/README.md - New structure and learning path
 ### 0.3.2.3 Restructure of Technical Documentation (docs/technical) (look through code that's been implemented)
 #### Core Architecture Documentation
 - [ ] Update architecture.md - System design, components, and data flow

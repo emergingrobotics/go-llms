@@ -1,543 +1,518 @@
-# Error Handling in Go-LLMs
+# Error Handling Guide
 
-> **[Documentation Home](/REFERENCE.md) / [User Guide](/docs/user-guide/) / Error Handling**
+Learn how to handle errors effectively in your go-llms applications.
 
-This document describes the error handling patterns and best practices used in the Go-LLMs library.
+## Overview
 
-*Related: [Getting Started](getting-started.md) | [Multi-Provider Guide](multi-provider.md) | [API Reference](/docs/api/README.md)*
+Building robust LLM applications requires proper error handling. This guide shows you how to handle common errors, implement retry logic, and build resilient applications.
 
-## Core Principles
+## Common Error Types
 
-1. **Standardized Error Types**: Use a set of predefined error types for common error cases.
-2. **Error Wrapping**: Wrap errors with additional context while preserving the original error.
-3. **Error Classification**: Provide helpers to classify errors by type.
-4. **Provider-specific Information**: Include provider-specific details in errors.
-5. **Multiple Provider Handling**: Special handling for aggregating errors from multiple providers.
-6. **Graceful Degradation**: Implement fallback mechanisms to handle errors in a way that preserves functionality.
-7. **Contextual Error Handling**: Handle errors according to the specific context of the operation.
+Go-llms provides standardized error types for consistent error handling across all providers.
 
-## Standard Error Types
-
-All standard error types are defined in `pkg/llm/domain/errors.go`:
-
-```go
-var (
-    // ErrRequestFailed is returned when a request to an LLM provider fails.
-    ErrRequestFailed = errors.New("request to LLM provider failed")
-    
-    // ErrResponseParsing is returned when the response from an LLM provider cannot be parsed.
-    ErrResponseParsing = errors.New("failed to parse LLM provider response")
-    
-    // ErrInvalidJSON is returned when the LLM response does not contain valid JSON.
-    ErrInvalidJSON = errors.New("response does not contain valid JSON")
-    
-    // ErrAuthenticationFailed is returned when authentication with the LLM provider fails.
-    ErrAuthenticationFailed = errors.New("authentication with LLM provider failed")
-    
-    // ErrRateLimitExceeded is returned when the LLM provider rate limit is exceeded.
-    ErrRateLimitExceeded = errors.New("rate limit exceeded")
-    
-    // ErrContextTooLong is returned when the input context is too long for the model.
-    ErrContextTooLong = errors.New("input context too long")
-    
-    // ErrProviderUnavailable is returned when the LLM provider is unavailable.
-    ErrProviderUnavailable = errors.New("LLM provider unavailable")
-    
-    // ErrInvalidConfiguration is returned when the provider configuration is invalid.
-    ErrInvalidConfiguration = errors.New("invalid provider configuration")
-    
-    // ErrNoResponse is returned when the LLM provider returns no response.
-    ErrNoResponse = errors.New("no response from LLM provider")
-    
-    // ErrTimeout is returned when a request to an LLM provider times out.
-    ErrTimeout = errors.New("LLM provider request timed out")
-    
-    // ErrContentFiltered is returned when content is filtered by the LLM provider.
-    ErrContentFiltered = errors.New("content filtered by LLM provider")
-    
-    // ErrModelNotFound is returned when the requested model is not found.
-    ErrModelNotFound = errors.New("model not found")
-    
-    // ErrNetworkConnectivity is returned when there are network issues connecting to the provider.
-    ErrNetworkConnectivity = errors.New("network connectivity issues")
-    
-    // ErrTokenQuotaExceeded is returned when the user has exceeded their token quota.
-    ErrTokenQuotaExceeded = errors.New("token quota exceeded")
-    
-    // ErrInvalidModelParameters is returned when provided model parameters are invalid.
-    ErrInvalidModelParameters = errors.New("invalid model parameters")
-)
-```
-
-## Provider Error Type
-
-The `ProviderError` type provides detailed information about errors from providers:
-
-```go
-// ProviderError represents an error from an LLM provider with additional context.
-type ProviderError struct {
-    // Provider is the name of the LLM provider (e.g., "openai", "anthropic").
-    Provider string
-    
-    // Operation is the operation that failed (e.g., "Generate", "Stream").
-    Operation string
-    
-    // StatusCode is the HTTP status code if applicable.
-    StatusCode int
-    
-    // Message is the error message from the provider.
-    Message string
-    
-    // Err is the underlying error.
-    Err error
-}
-```
-
-The `ProviderError` implements:
-- `Error() string`: Returns a formatted error message including provider, operation, status code, and message
-- `Unwrap() error`: Returns the underlying error for error wrapping and checking with `errors.Is()`
-
-## Multi-Provider Error Handling
-
-For the `MultiProvider` implementation, we use a special error type that aggregates errors from multiple providers:
-
-```go
-// MultiProviderError represents an error from multiple providers
-type MultiProviderError struct {
-    // ProviderErrors contains the errors from each provider
-    ProviderErrors map[string]error
-    
-    // Message is the overall error message
-    Message string
-}
-```
-
-The `MultiProviderError` implements:
-- `Error() string`: Returns a formatted error message including all provider errors
-- `Unwrap() error`: Returns the first error in the map (for compatibility with unwrap)
-- `Is(target error) bool`: Checks if any of the provider errors match the target error
-
-## Error Classification
-
-Helper functions are provided to classify errors:
-
-```go
-// IsAuthenticationError checks if the error is an authentication error.
-func IsAuthenticationError(err error) bool {
-    return errors.Is(err, ErrAuthenticationFailed)
-}
-
-// IsRateLimitError checks if the error is a rate limit error.
-func IsRateLimitError(err error) bool {
-    return errors.Is(err, ErrRateLimitExceeded)
-}
-
-// IsTimeoutError checks if the error is a timeout error.
-func IsTimeoutError(err error) bool {
-    return errors.Is(err, ErrTimeout)
-}
-
-// IsProviderUnavailableError checks if the error is a provider unavailable error.
-func IsProviderUnavailableError(err error) bool {
-    return errors.Is(err, ErrProviderUnavailable)
-}
-
-// IsContentFilteredError checks if the error is a content filtered error.
-func IsContentFilteredError(err error) bool {
-    return errors.Is(err, ErrContentFiltered)
-}
-
-// IsNetworkConnectivityError checks if the error is a network connectivity error.
-func IsNetworkConnectivityError(err error) bool {
-    return errors.Is(err, ErrNetworkConnectivity)
-}
-
-// IsTokenQuotaExceededError checks if the error is a token quota exceeded error.
-func IsTokenQuotaExceededError(err error) bool {
-    return errors.Is(err, ErrTokenQuotaExceeded)
-}
-
-// IsInvalidModelParametersError checks if the error is an invalid model parameters error.
-func IsInvalidModelParametersError(err error) bool {
-    return errors.Is(err, ErrInvalidModelParameters)
-}
-```
-
-## Provider-Specific Error Mapping
-
-Each provider implements its own error mapping function to convert provider-specific errors to the standard error types. 
-
-### OpenAI Error Mapping
-
-```go
-// mapOpenAIErrorToStandard maps OpenAI API error messages to standard error types
-func mapOpenAIErrorToStandard(statusCode int, errorMsg string, operation string) error {
-    // Convert error message to lowercase for case-insensitive matching
-    lowerErrorMsg := strings.ToLower(errorMsg)
-
-    // Common error patterns for OpenAI
-    switch {
-    case statusCode == http.StatusUnauthorized || strings.Contains(lowerErrorMsg, "invalid api key"):
-        return domain.NewProviderError("openai", operation, statusCode, errorMsg, domain.ErrAuthenticationFailed)
-        
-    case statusCode == http.StatusTooManyRequests || strings.Contains(lowerErrorMsg, "rate limit"):
-        return domain.NewProviderError("openai", operation, statusCode, errorMsg, domain.ErrRateLimitExceeded)
-        
-    case strings.Contains(lowerErrorMsg, "context length"):
-        return domain.NewProviderError("openai", operation, statusCode, errorMsg, domain.ErrContextTooLong)
-        
-    case strings.Contains(lowerErrorMsg, "content filter"):
-        return domain.NewProviderError("openai", operation, statusCode, errorMsg, domain.ErrContentFiltered)
-        
-    case strings.Contains(lowerErrorMsg, "model not found"):
-        return domain.NewProviderError("openai", operation, statusCode, errorMsg, domain.ErrModelNotFound)
-        
-    case strings.Contains(lowerErrorMsg, "quota") || strings.Contains(lowerErrorMsg, "billing"):
-        return domain.NewProviderError("openai", operation, statusCode, errorMsg, domain.ErrTokenQuotaExceeded)
-        
-    case strings.Contains(lowerErrorMsg, "invalid parameter") || strings.Contains(lowerErrorMsg, "invalid request"):
-        return domain.NewProviderError("openai", operation, statusCode, errorMsg, domain.ErrInvalidModelParameters)
-        
-    case statusCode == http.StatusServiceUnavailable || 
-         statusCode == http.StatusBadGateway || 
-         statusCode == http.StatusGatewayTimeout:
-        return domain.NewProviderError("openai", operation, statusCode, errorMsg, domain.ErrNetworkConnectivity)
-        
-    case statusCode >= 500:
-        return domain.NewProviderError("openai", operation, statusCode, errorMsg, domain.ErrProviderUnavailable)
-        
-    default:
-        return domain.NewProviderError("openai", operation, statusCode, errorMsg, domain.ErrRequestFailed)
-    }
-}
-```
-
-### Anthropic Error Mapping
-
-```go
-// mapAnthropicErrorToStandard maps Anthropic API error messages to standard error types
-func mapAnthropicErrorToStandard(statusCode int, errorType, errorMsg string, operation string) error {
-    lowerErrorMsg := strings.ToLower(errorMsg)
-    lowerErrorType := strings.ToLower(errorType)
-
-    switch {
-    case statusCode == http.StatusUnauthorized || 
-         strings.Contains(lowerErrorType, "authentication") || 
-         strings.Contains(lowerErrorMsg, "api key"):
-        return domain.NewProviderError("anthropic", operation, statusCode, errorMsg, domain.ErrAuthenticationFailed)
-        
-    case statusCode == http.StatusTooManyRequests || 
-         strings.Contains(lowerErrorType, "rate_limit") || 
-         strings.Contains(lowerErrorMsg, "rate limit"):
-        return domain.NewProviderError("anthropic", operation, statusCode, errorMsg, domain.ErrRateLimitExceeded)
-    
-    // Additional mappings for other error types...
-    }
-}
-```
-
-## Common Error Handling Patterns
-
-### Basic Error Handling
-
-The most basic pattern is to check for errors and handle them appropriately:
+### Authentication Errors
 
 ```go
 response, err := provider.Generate(ctx, prompt)
 if err != nil {
     if domain.IsAuthenticationError(err) {
-        // Handle authentication errors
-        fmt.Println("Authentication failed, please check your API key")
-    } else if domain.IsRateLimitError(err) {
-        // Handle rate limit errors
-        fmt.Println("Rate limit exceeded, please try again later")
-    } else if domain.IsTimeoutError(err) {
-        // Handle timeout errors
-        fmt.Println("Request timed out, please try again")
-    } else if domain.IsNetworkConnectivityError(err) {
-        // Handle network connectivity errors
-        fmt.Println("Network connectivity issues, check your internet connection")
-    } else if domain.IsTokenQuotaExceededError(err) {
-        // Handle token quota exceeded errors
-        fmt.Println("Token quota exceeded, check your billing and usage limits")
-    } else if domain.IsInvalidModelParametersError(err) {
-        // Handle invalid model parameters errors
-        fmt.Println("Invalid model parameters provided, please check your request")
-    } else if domain.IsContentFilteredError(err) {
-        // Handle content filtered errors
-        fmt.Println("Content was filtered by the provider, please revise your prompt")
-    } else {
-        // Handle other errors
-        fmt.Printf("Error: %v\n", err)
+        // API key is invalid or missing
+        log.Fatal("Please check your API key")
     }
-    return
 }
 ```
 
-### Handling Multi-Provider Errors
-
-When using the `MultiProvider`, you should check for `MultiProviderError` and handle it accordingly:
+### Rate Limiting
 
 ```go
-response, err := multiProvider.Generate(ctx, prompt)
-if err != nil {
-    // Check if it's a multi-provider error
-    var multiErr *provider.MultiProviderError
-    if errors.As(err, &multiErr) {
-        fmt.Println("Errors from multiple providers:")
-        for providerName, providerErr := range multiErr.ProviderErrors {
-            fmt.Printf("  - %s: %v\n", providerName, providerErr)
-            
-            // You can further classify each provider's error
-            if domain.IsRateLimitError(providerErr) {
-                fmt.Printf("    Provider %s is rate limited\n", providerName)
-            }
+if domain.IsRateLimitError(err) {
+    // Too many requests
+    log.Printf("Rate limited, waiting before retry...")
+    time.Sleep(time.Minute)
+    // Retry the request
+}
+```
+
+### Context Length
+
+```go
+if domain.IsContextTooLongError(err) {
+    // Input is too long for the model
+    log.Printf("Input too long, truncating...")
+    truncatedPrompt := truncatePrompt(prompt, maxTokens)
+    response, err = provider.Generate(ctx, truncatedPrompt)
+}
+```
+
+### Network Issues
+
+```go
+if domain.IsNetworkConnectivityError(err) || domain.IsTimeoutError(err) {
+    // Network or timeout issues
+    log.Printf("Network issue: %v", err)
+    // Implement exponential backoff
+}
+```
+
+## Error Classification
+
+Use helper functions to classify errors:
+
+```go
+// Check specific error types
+if domain.IsAuthenticationError(err) {
+    // Handle auth error
+}
+
+if domain.IsRateLimitError(err) {
+    // Handle rate limit
+}
+
+if domain.IsTimeoutError(err) {
+    // Handle timeout
+}
+
+if domain.IsProviderUnavailableError(err) {
+    // Provider is down
+}
+
+if domain.IsContentFilteredError(err) {
+    // Content was filtered
+}
+
+if domain.IsTokenQuotaExceededError(err) {
+    // Out of tokens/credits
+}
+```
+
+## Provider Errors
+
+Get detailed information about provider errors:
+
+```go
+var provErr *domain.ProviderError
+if errors.As(err, &provErr) {
+    log.Printf("Provider: %s", provErr.Provider)
+    log.Printf("Operation: %s", provErr.Operation)
+    log.Printf("Status Code: %d", provErr.StatusCode)
+    log.Printf("Message: %s", provErr.Message)
+    
+    // Handle based on status code
+    switch provErr.StatusCode {
+    case 401:
+        // Unauthorized
+    case 429:
+        // Rate limited
+    case 500, 502, 503:
+        // Server errors - retry
+    }
+}
+```
+
+## Retry Strategies
+
+### Basic Retry with Backoff
+
+```go
+func retryWithBackoff(fn func() error, maxRetries int) error {
+    var err error
+    
+    for i := 0; i < maxRetries; i++ {
+        err = fn()
+        if err == nil {
+            return nil
         }
-    } else {
-        // Handle other errors
-        fmt.Printf("Error: %v\n", err)
-    }
-    return
-}
-```
-
-### Retry Logic for Transient Errors
-
-Some errors are transient and can be retried:
-
-```go
-const maxRetries = 3
-
-var response domain.Response
-var err error
-
-for i := 0; i < maxRetries; i++ {
-    response, err = provider.Generate(ctx, prompt)
-    
-    // If successful, break out of the retry loop
-    if err == nil {
-        break
-    }
-    
-    // Only retry on certain errors
-    if domain.IsRateLimitError(err) || 
-       domain.IsNetworkConnectivityError(err) || 
-       domain.IsProviderUnavailableError(err) || 
-       domain.IsTimeoutError(err) {
+        
+        // Only retry certain errors
+        if !isRetryable(err) {
+            return err
+        }
         
         // Exponential backoff
         backoff := time.Duration(math.Pow(2, float64(i))) * time.Second
-        fmt.Printf("Retrying after %v due to error: %v\n", backoff, err)
+        log.Printf("Retry %d/%d after %v", i+1, maxRetries, backoff)
         time.Sleep(backoff)
-        continue
     }
     
-    // Don't retry on other errors
-    break
+    return fmt.Errorf("failed after %d retries: %w", maxRetries, err)
 }
 
-if err != nil {
-    // Handle the error after all retries failed
-    fmt.Printf("Failed after %d retries: %v\n", maxRetries, err)
-    return
+func isRetryable(err error) bool {
+    return domain.IsRateLimitError(err) ||
+           domain.IsNetworkConnectivityError(err) ||
+           domain.IsTimeoutError(err) ||
+           domain.IsProviderUnavailableError(err)
 }
 ```
 
-### Graceful Degradation with Fallbacks
-
-Implement fallbacks for when primary providers fail:
+### Advanced Retry with Jitter
 
 ```go
-// Try the primary provider first
-response, err := primaryProvider.Generate(ctx, prompt)
-if err != nil {
-    fmt.Printf("Primary provider failed: %v, falling back to secondary\n", err)
+func retryWithJitter(fn func() error, maxRetries int) error {
+    for i := 0; i < maxRetries; i++ {
+        if err := fn(); err == nil {
+            return nil
+        } else if !isRetryable(err) {
+            return err
+        }
+        
+        // Add jitter to prevent thundering herd
+        baseDelay := time.Duration(math.Pow(2, float64(i))) * time.Second
+        jitter := time.Duration(rand.Int63n(int64(baseDelay / 2)))
+        
+        time.Sleep(baseDelay + jitter)
+    }
     
-    // Fall back to the secondary provider
-    response, err = secondaryProvider.Generate(ctx, prompt)
-    if err != nil {
-        fmt.Printf("Secondary provider also failed: %v\n", err)
-        return nil, fmt.Errorf("all providers failed: %w", err)
+    return fmt.Errorf("max retries exceeded")
+}
+```
+
+## Multi-Provider Error Handling
+
+When using multiple providers, handle failures gracefully:
+
+```go
+// Check for multi-provider errors
+var multiErr *domain.MultiProviderError
+if errors.As(err, &multiErr) {
+    log.Printf("Multiple providers failed:")
+    
+    for provider, providerErr := range multiErr.ProviderErrors {
+        log.Printf("  %s: %v", provider, providerErr)
+        
+        // Check each provider's error type
+        if domain.IsRateLimitError(providerErr) {
+            log.Printf("    %s is rate limited", provider)
+        }
     }
 }
 ```
 
-## Structured Output Error Handling
-
-When working with structured outputs, additional error handling is needed for schema validation:
+### Fallback Strategy
 
 ```go
-// Define a schema for the output
-schema := &domain.Schema{
-    Type: domain.ObjectType,
-    Properties: map[string]*domain.Schema{
-        "name": {Type: domain.StringType},
-        "age":  {Type: domain.IntegerType},
-    },
-    Required: []string{"name", "age"},
+func generateWithFallback(providers []domain.Provider, prompt string) (string, error) {
+    var lastErr error
+    
+    for _, provider := range providers {
+        response, err := provider.Generate(context.Background(), prompt)
+        if err == nil {
+            return response, nil
+        }
+        
+        lastErr = err
+        log.Printf("Provider %T failed: %v, trying next", provider, err)
+        
+        // Don't retry on auth errors
+        if domain.IsAuthenticationError(err) {
+            continue
+        }
+        
+        // Wait before trying next provider for rate limits
+        if domain.IsRateLimitError(err) {
+            time.Sleep(5 * time.Second)
+        }
+    }
+    
+    return "", fmt.Errorf("all providers failed, last error: %w", lastErr)
+}
+```
+
+## Structured Output Errors
+
+Handle validation errors when using structured output:
+
+```go
+type Product struct {
+    Name  string  `json:"name"`
+    Price float64 `json:"price"`
 }
 
-// Process with schema validation
-result, err := processor.Process(ctx, llmResponse, schema)
+var product Product
+err := provider.GenerateWithSchema(ctx, prompt, &product)
 if err != nil {
     if domain.IsInvalidJSON(err) {
-        // Handle invalid JSON errors
-        fmt.Println("LLM response did not contain valid JSON")
-    } else if err is a validation error {
-        // Handle schema validation errors
-        fmt.Println("LLM response did not match the expected schema")
-        fmt.Printf("Validation error: %v\n", err)
-        
-        // You might want to retry with a more explicit prompt
-        enhancedPrompt := prompt + "\nPlease ensure your response includes 'name' as a string and 'age' as an integer."
-        return retryWithEnhancedPrompt(ctx, provider, enhancedPrompt, schema)
-    } else {
-        // Handle other errors
-        fmt.Printf("Error processing response: %v\n", err)
+        log.Printf("LLM didn't return valid JSON")
+        // Retry with clearer instructions
+        enhancedPrompt := prompt + "\nPlease respond with valid JSON only."
+        err = provider.GenerateWithSchema(ctx, enhancedPrompt, &product)
     }
-    return nil, err
+}
+```
+
+### Schema Validation Recovery
+
+```go
+func generateStructuredWithRetry(provider domain.Provider, prompt string, schema interface{}) error {
+    maxAttempts := 3
+    
+    for i := 0; i < maxAttempts; i++ {
+        err := provider.GenerateWithSchema(ctx, prompt, schema)
+        if err == nil {
+            return nil
+        }
+        
+        // Enhance prompt based on error
+        if domain.IsInvalidJSON(err) {
+            prompt = fmt.Sprintf("%s\n\nIMPORTANT: Respond with valid JSON matching this structure: %+v", 
+                prompt, schema)
+        } else if validationErr, ok := err.(*validation.Error); ok {
+            prompt = fmt.Sprintf("%s\n\nFix these validation errors: %v", 
+                prompt, validationErr.Details)
+        }
+    }
+    
+    return fmt.Errorf("failed to get valid structured output after %d attempts", maxAttempts)
 }
 ```
 
 ## Agent Error Handling
 
-The Agent system has specific error handling considerations:
+Agents handle errors differently for tools vs LLM calls:
 
-1. **Tool Execution Errors**:
-   - Tool errors are communicated back to the LLM to allow the agent to try alternate approaches
-   - They don't necessarily fail the entire agent process
+### Tool Errors
+
+Tool errors are communicated back to the LLM so it can try alternatives:
 
 ```go
-// Execute a tool and handle errors
+// In agent implementation
 result, err := tool.Execute(ctx, params)
 if err != nil {
-    // Log the error for debugging
-    log.Printf("Tool %s failed: %v", tool.Name(), err)
+    // Tool error becomes part of conversation
+    toolMessage := domain.Message{
+        Role:    domain.RoleTool,
+        Content: fmt.Sprintf("Tool error: %v", err),
+    }
     
-    // Format the error for the LLM
-    toolResponse := fmt.Sprintf("Error: %v", err)
-    
-    // Add to the conversation so the LLM can try an alternative
-    conversation = append(conversation, domain.Message{
-        Role:    "function",
-        Content: toolResponse,
-        Name:    tool.Name(),
-    })
-    
-    // Continue the agent process
-    return continueWithLLM(ctx, conversation)
+    // LLM sees the error and can try something else
+    messages = append(messages, toolMessage)
+    continue // Let agent try alternative approach
 }
 ```
 
-2. **LLM Generation Errors**:
-   - These are more severe and typically fail the agent process
-   - Implement retries for transient errors
+### Agent Retry Logic
 
 ```go
-// Get a response from the LLM
-response, err := llm.GenerateMessage(ctx, conversation)
-if err != nil {
-    // Check for retryable errors
-    if domain.IsRateLimitError(err) || domain.IsNetworkConnectivityError(err) {
-        // Retry after a backoff
-        time.Sleep(backoff)
-        return retry(ctx, conversation, backoff*2)
+func runAgentWithRetry(agent domain.BaseAgent, state *domain.State) (*domain.State, error) {
+    maxRetries := 3
+    
+    for i := 0; i < maxRetries; i++ {
+        result, err := agent.Run(context.Background(), state)
+        if err == nil {
+            return result, nil
+        }
+        
+        // Only retry transient errors
+        if !isRetryable(err) {
+            return nil, err
+        }
+        
+        log.Printf("Agent failed (attempt %d/%d): %v", i+1, maxRetries, err)
+        
+        // Add retry context to state
+        state.Set("retry_attempt", i+1)
+        state.Set("previous_error", err.Error())
+        
+        time.Sleep(time.Duration(i+1) * time.Second)
     }
     
-    // Non-retryable errors fail the agent process
-    return nil, fmt.Errorf("agent failed due to LLM error: %w", err)
+    return nil, fmt.Errorf("agent failed after %d retries", maxRetries)
+}
+```
+
+## Context and Timeouts
+
+Always use context for proper timeout handling:
+
+```go
+// Set operation timeout
+ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+defer cancel()
+
+response, err := provider.Generate(ctx, prompt)
+if err != nil {
+    if errors.Is(err, context.DeadlineExceeded) {
+        log.Printf("Operation timed out after 30s")
+        // Try with longer timeout or simpler prompt
+    }
+}
+```
+
+### Cascading Timeouts
+
+```go
+// Parent context with overall timeout
+parentCtx, parentCancel := context.WithTimeout(ctx, 2*time.Minute)
+defer parentCancel()
+
+// Individual operation timeouts
+for _, task := range tasks {
+    opCtx, opCancel := context.WithTimeout(parentCtx, 30*time.Second)
+    
+    err := processTask(opCtx, task)
+    opCancel() // Clean up immediately
+    
+    if err != nil {
+        if errors.Is(err, context.DeadlineExceeded) {
+            if parentCtx.Err() != nil {
+                return fmt.Errorf("overall timeout exceeded")
+            }
+            log.Printf("Task %s timed out, skipping", task.Name)
+            continue
+        }
+        return err
+    }
+}
+```
+
+## Error Patterns by Use Case
+
+### Chatbot Applications
+
+```go
+func handleChatError(err error) string {
+    switch {
+    case domain.IsRateLimitError(err):
+        return "I'm receiving too many requests. Please try again in a moment."
+    case domain.IsContentFilteredError(err):
+        return "I can't process that request. Please rephrase your question."
+    case domain.IsTimeoutError(err):
+        return "The response is taking longer than expected. Please try again."
+    case domain.IsAuthenticationError(err):
+        return "There's a configuration issue. Please contact support."
+    default:
+        return "I encountered an error. Please try again later."
+    }
+}
+```
+
+### Data Processing Pipelines
+
+```go
+func processBatch(items []Item) error {
+    var errors []error
+    successCount := 0
+    
+    for _, item := range items {
+        if err := processItem(item); err != nil {
+            errors = append(errors, fmt.Errorf("item %s: %w", item.ID, err))
+            
+            // Continue processing other items
+            if !isCriticalError(err) {
+                continue
+            }
+            
+            // Stop on critical errors
+            return fmt.Errorf("critical error processing item %s: %w", item.ID, err)
+        }
+        successCount++
+    }
+    
+    // Report partial success
+    if len(errors) > 0 {
+        log.Printf("Processed %d/%d items successfully", successCount, len(items))
+        for _, err := range errors {
+            log.Printf("Error: %v", err)
+        }
+    }
+    
+    return nil
 }
 ```
 
 ## Best Practices
 
-### Provider Integration Best Practices
+### 1. Use Typed Errors
+```go
+// Good: Check error type
+if domain.IsRateLimitError(err) {
+    // Handle rate limit
+}
 
-When implementing new provider integrations, follow these best practices:
+// Avoid: String matching
+if strings.Contains(err.Error(), "rate limit") {
+    // Fragile
+}
+```
 
-1. **Use Standard Error Types**: Map provider-specific errors to the standard error types defined in `pkg/llm/domain/errors.go`.
+### 2. Add Context
+```go
+// Good: Wrap with context
+return fmt.Errorf("failed to generate response for user %s: %w", userID, err)
 
-2. **Include Context**: When creating new errors, include enough context to help debugging:
-   - Provider name
-   - Operation that failed
-   - HTTP status code if applicable
-   - Original error message
+// Avoid: Bare error
+return err
+```
 
-3. **Preserve Original Errors**: Use `fmt.Errorf("error message: %w", err)` or `domain.NewProviderError()` to preserve the original error for error checking.
+### 3. Log at the Right Level
+```go
+// Log transient errors as warnings
+if domain.IsRateLimitError(err) {
+    log.Warn("Rate limited, will retry", "provider", providerName)
+}
 
-4. **Error Mapping Logic**: Implement a provider-specific error mapping function that:
-   - Analyzes status codes
-   - Looks for patterns in error messages
-   - Maps to the most specific standard error type
+// Log permanent errors as errors
+if domain.IsAuthenticationError(err) {
+    log.Error("Authentication failed", "provider", providerName)
+}
+```
 
-5. **Handle Rate Limits**: Implement proper handling for rate limit errors:
-   - Include information about retry-after intervals
-   - Consider implementing automatic retries with backoff
+### 4. Fail Fast on Unrecoverable Errors
+```go
+// Don't retry auth errors
+if domain.IsAuthenticationError(err) {
+    return fmt.Errorf("invalid credentials: %w", err)
+}
 
-### Client Code Best Practices
+// Do retry transient errors
+if domain.IsNetworkConnectivityError(err) {
+    return retryWithBackoff(operation, 3)
+}
+```
 
-When using the library in client code, follow these best practices:
+### 5. Provide User-Friendly Messages
+```go
+func userFriendlyError(err error) string {
+    if technical := os.Getenv("DEBUG"); technical == "true" {
+        return err.Error() // Full error in debug mode
+    }
+    
+    // User-friendly messages in production
+    switch {
+    case domain.IsRateLimitError(err):
+        return "Service is busy, please try again later"
+    case domain.IsTokenQuotaExceededError(err):
+        return "Monthly usage limit reached"
+    default:
+        return "An error occurred, please try again"
+    }
+}
+```
 
-1. **Check Error Types**: Use `errors.Is()` and `errors.As()` to check error types, rather than string matching:
-   ```go
-   if domain.IsRateLimitError(err) {
-       // Handle rate limiting
-   }
-   ```
+## Testing Error Scenarios
 
-2. **Return Specific Errors**: Return the most specific error type possible to help callers handle errors appropriately.
+```go
+func TestErrorHandling(t *testing.T) {
+    // Test with mock provider that returns specific errors
+    mockProvider := provider.NewMockProvider()
+    
+    // Test rate limit handling
+    mockProvider.SetError(domain.ErrRateLimitExceeded)
+    _, err := generateWithRetry(mockProvider, "test")
+    assert.True(t, domain.IsRateLimitError(err))
+    
+    // Test authentication error (should not retry)
+    mockProvider.SetError(domain.ErrAuthenticationFailed)
+    _, err = generateWithRetry(mockProvider, "test")
+    assert.True(t, domain.IsAuthenticationError(err))
+    assert.Equal(t, 1, mockProvider.CallCount()) // No retries
+}
+```
 
-3. **Implement Retries**: Implement retry logic for transient errors:
-   - Rate limit errors
-   - Network connectivity issues
-   - Provider unavailability
-   - Timeouts
+## Next Steps
 
-4. **Use Timeouts**: Always set appropriate context timeouts for LLM operations:
-   ```go
-   ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-   defer cancel()
-   
-   response, err := provider.Generate(ctx, prompt)
-   ```
+- Learn about [Multi-Provider](providers.md#multi-provider-setup) strategies for reliability
+- Explore [Agent](agents.md) error recovery patterns
+- See [Examples Gallery](examples-gallery.md) for error handling in practice
 
-5. **Graceful Degradation**: Implement fallback mechanisms when possible:
-   - Try alternative providers
-   - Retry with different model parameters
-   - Use cached results as a last resort
-
-6. **Log Detailed Errors (in your application code)**: Log detailed error information for debugging:
-   ```go
-   // Note: This logging should be done in your application code, not in library code.
-   // The go-llms library returns errors with context but does not log them.
-   if err != nil {
-       log.Printf("LLM error: %v (%T)", err, err)
-       
-       // Extract provider-specific details
-       var provErr *domain.ProviderError
-       if errors.As(err, &provErr) {
-           log.Printf("Provider: %s, Operation: %s, Status: %d, Message: %s",
-               provErr.Provider, provErr.Operation, provErr.StatusCode, provErr.Message)
-       }
-   }
-   ```
-
-7. **Handle Context Cancellation**: Always check for context cancellation:
-   ```go
-   if errors.Is(err, context.Canceled) {
-       // Handle cancellation
-       return nil, fmt.Errorf("operation was canceled: %w", err)
-   }
-   ```
-
-## Conclusion
-
-The Go-LLMs library provides a comprehensive error handling system that balances:
-
-1. **Standardization**: Common error types across providers
-2. **Context**: Detailed information about what went wrong
-3. **Specificity**: Fine-grained error classification
-4. **Preservability**: Error wrapping to maintain context
-5. **Usability**: Helper functions for error checking
-
-By following the patterns and best practices outlined in this document, you can build robust applications that gracefully handle errors from LLM providers and provide a better user experience.
+Remember: Good error handling is what separates a demo from a production-ready application! 🛡️

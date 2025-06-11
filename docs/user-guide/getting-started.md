@@ -1,33 +1,16 @@
-# Getting Started with Go-LLMs
+# Getting Started
 
-> **[Documentation Home](/REFERENCE.md) / [User Guide](/docs/user-guide/) / Getting Started**
-
-This guide will help you get started with the Go-LLMs library, a Go implementation for creating LLM-powered applications with structured outputs and type safety.
-
-*Related: [Multi-Provider Guide](multi-provider.md) | [Advanced Validation](advanced-validation.md) | [Error Handling](error-handling.md) | [API Reference](/docs/api/README.md)*
-
-## Table of Contents
-
-1. [Installation](#installation)
-2. [Basic Usage](#basic-usage)
-3. [Schema Validation](#schema-validation)
-4. [LLM Providers](#llm-providers)
-5. [Structured Output](#structured-output)
-6. [Multi-Provider](#multi-provider)
-7. [Agent Tools](#agent-tools)
-8. [Next Steps](#next-steps)
+Welcome to go-llms! This guide will get you up and running with the basics in minutes.
 
 ## Installation
-
-Install the Go-LLMs library using Go modules:
 
 ```bash
 go get github.com/lexlapax/go-llms
 ```
 
-## Basic Usage
+## Your First Program
 
-### Simple Text Generation
+Here's the simplest way to use go-llms:
 
 ```go
 package main
@@ -35,332 +18,141 @@ package main
 import (
     "context"
     "fmt"
-    "os"
+    "log"
     
     "github.com/lexlapax/go-llms/pkg/llm/provider"
 )
 
 func main() {
-    // Create an OpenAI provider with the modern gpt-4o model
-    llmProvider := provider.NewOpenAIProvider(
-        os.Getenv("OPENAI_API_KEY"),
+    // Create a provider (OpenAI example)
+    provider := provider.NewOpenAIProvider(
+        "your-api-key",  // or use os.Getenv("OPENAI_API_KEY")
         "gpt-4o",
     )
     
-    // Generate text with a simple prompt
-    response, err := llmProvider.Generate(context.Background(), "Explain quantum computing")
+    // Generate text
+    response, err := provider.Generate(
+        context.Background(), 
+        "Explain quantum computing in one sentence",
+    )
     if err != nil {
-        fmt.Printf("Error: %v\n", err)
-        return
+        log.Fatal(err)
     }
     
-    fmt.Printf("Response: %s\n", response)
+    fmt.Println(response)
 }
-```
-
-## Schema Validation
-
-Go-LLMs provides comprehensive schema validation capabilities:
-
-```go
-// Define a schema for validation
-schema := &domain.Schema{
-    Type: "object",
-    Properties: map[string]domain.Property{
-        "name":  {Type: "string", Description: "Person's name"},
-        "age":   {Type: "integer", Minimum: float64Ptr(0), Maximum: float64Ptr(120)},
-        "email": {Type: "string", Format: "email", Description: "Email address"},
-    },
-    Required: []string{"name", "email"},
-}
-
-// Create a validator
-validator := validation.NewValidator()
-
-// Validate JSON data against the schema
-result, err := validator.Validate(schema, `{"name": "John Doe", "age": 30, "email": "john@example.com"}`)
-if err != nil {
-    log.Fatalf("Validation error: %v", err)
-}
-
-fmt.Printf("Validation result: %v\n", result.Valid)
-```
-
-## LLM Providers
-
-Go-LLMs supports multiple LLM providers:
-
-### OpenAI
-
-```go
-// Create an OpenAI provider
-provider := provider.NewOpenAIProvider(
-    os.Getenv("OPENAI_API_KEY"),
-    "gpt-4o",
-)
-```
-
-### Anthropic
-
-```go
-// Create an Anthropic provider
-provider := provider.NewAnthropicProvider(
-    os.Getenv("ANTHROPIC_API_KEY"),
-    "claude-3-5-sonnet-latest",
-)
-```
-
-### Mock Provider (for testing)
-
-```go
-// Create a mock provider for testing
-provider := provider.NewMockProvider().
-    WithResponse("This is a mock response").
-    WithDelay(100 * time.Millisecond)
 ```
 
 ## Structured Output
 
-Generate structured, schema-conforming outputs from LLMs:
+Want to get structured data from LLMs? Here's how:
 
 ```go
-// Define your schema
-schema := &domain.Schema{
-    Type: "object",
-    Properties: map[string]domain.Property{
-        "name": {Type: "string"},
-        "age":  {Type: "integer", Minimum: float64Ptr(0)},
-        "email": {Type: "string", Format: "email"},
-    },
-    Required: []string{"name", "email"},
+// Define what you want
+type City struct {
+    Name       string `json:"name"`
+    Country    string `json:"country"`
+    Population int    `json:"population"`
 }
 
-// Generate structured output
-result, err := provider.GenerateWithSchema(
+// Ask for it
+var city City
+err := provider.GenerateWithSchema(
     context.Background(),
-    "Generate information about a person",
-    schema,
+    "Tell me about Tokyo",
+    &city,
 )
-if err != nil {
-    log.Fatalf("Structured generation error: %v", err)
-}
 
-// Access the structured result
-person := result.(map[string]interface{})
-fmt.Printf("Generated person: %s (%d)\n", person["name"], person["age"])
+// Use it
+fmt.Printf("%s, %s has %d people\n", 
+    city.Name, city.Country, city.Population)
 ```
 
-### Processing Raw Outputs
+## Using Multiple Providers
 
-You can also process raw LLM outputs containing JSON:
+Need reliability? Use multiple providers:
 
 ```go
-// Create a JSON processor
-processor := processor.NewJsonProcessor()
+import "github.com/lexlapax/go-llms/pkg/llm/provider"
 
-// Process raw LLM output containing JSON
-rawOutput := `I'll create a person profile for you:
-{
-  "name": "Jane Smith",
-  "age": 35,
-  "email": "jane.smith@example.com"
-}
-Hope this helps!`
+// Create providers
+openai := provider.NewOpenAIProvider(openaiKey, "gpt-4o")
+anthropic := provider.NewAnthropicProvider(anthropicKey, "claude-3-5-sonnet-latest")
 
-// Extract and validate the JSON
-data, err := processor.Process(schema, rawOutput)
-if err != nil {
-    log.Fatalf("Processing error: %v", err)
-}
+// Combine them
+multi := provider.NewMultiProvider(
+    []provider.ProviderConfig{
+        {Provider: openai, Name: "openai"},
+        {Provider: anthropic, Name: "anthropic"},
+    },
+    provider.StrategyPrimary, // Use OpenAI, fallback to Anthropic
+)
 
-// Or map directly to a struct
-type Person struct {
-    Name  string `json:"name"`
-    Age   int    `json:"age"`
-    Email string `json:"email"`
-}
-
-var person Person
-err = processor.ProcessTyped(schema, rawOutput, &person)
-if err != nil {
-    log.Fatalf("Processing error: %v", err)
-}
-
-fmt.Printf("Person: %s (%d)\n", person.Name, person.Age)
+// Use like any provider
+response, _ := multi.Generate(ctx, "Hello!")
 ```
 
-## Multi-Provider
+## Agents with Tools
 
-The Multi-Provider feature allows you to work with multiple LLM providers simultaneously:
-
-```go
-// Create multiple providers
-openaiProvider := provider.NewOpenAIProvider(os.Getenv("OPENAI_API_KEY"), "gpt-4o")
-anthropicProvider := provider.NewAnthropicProvider(os.Getenv("ANTHROPIC_API_KEY"), "claude-3-5-sonnet-latest")
-
-// Create provider weights
-providers := []provider.ProviderWeight{
-    {Provider: openaiProvider, Weight: 1.0, Name: "openai"},
-    {Provider: anthropicProvider, Weight: 1.0, Name: "anthropic"},
-}
-
-// Create a multi-provider with the fastest strategy
-fastestProvider := provider.NewMultiProvider(providers, provider.StrategyFastest)
-
-// Or with the primary strategy (with fallback)
-primaryProvider := provider.NewMultiProvider(providers, provider.StrategyPrimary).
-    WithPrimaryProvider(0) // Use first provider as primary
-
-// Or with consensus strategy
-consensusProvider := provider.NewMultiProvider(providers, provider.StrategyConsensus).
-    WithConsensusStrategy(provider.ConsensusSimilarity).
-    WithSimilarityThreshold(0.7)
-
-// Use like any other provider
-response, err := consensusProvider.Generate(context.Background(), "What are the three laws of robotics?")
-```
-
-For more details on the Multi-Provider feature, see the [Multi-Provider Guide](multi-provider.md).
-
-## Agent Tools
-
-The Agent feature allows LLMs to interact with tools and perform complex tasks:
+Create an intelligent agent that can use tools:
 
 ```go
 import (
-    "log/slog"
-    
     "github.com/lexlapax/go-llms/pkg/agent/core"
-    "github.com/lexlapax/go-llms/pkg/agent/domain"
-    "github.com/lexlapax/go-llms/pkg/agent/tools"
+    "github.com/lexlapax/go-llms/pkg/agent/builtins/tools"
+    _ "github.com/lexlapax/go-llms/pkg/agent/builtins/tools/math"
 )
 
-// Create a provider
-llmProvider := provider.NewOpenAIProvider(os.Getenv("OPENAI_API_KEY"), "gpt-4o")
+// Create an agent
+agent := core.NewLLMAgent("assistant", provider)
 
-// Create an agent using core.LLMAgent
-deps := core.LLMDeps{
-    Provider: llmProvider,
-}
-agent := core.NewLLMAgent("my-agent", "gpt-4o", deps)
-agent.SetSystemPrompt("You are a helpful assistant with access to tools.")
+// Add a built-in tool
+calculator, _ := tools.GetTool("calculator")
+agent.AddTool(calculator)
 
-// Add a calculator tool
-agent.AddTool(tools.NewTool(
-    "calculator",
-    "Perform mathematical calculations",
-    func(ctx domain.ToolContext, params map[string]interface{}) (interface{}, error) {
-        expression, _ := params["expression"].(string)
-        // Implement calculation...
-        return result, nil
-    },
-))
+// Let the agent work
+state := domain.NewState().Set("input", "What's 15% of 200?")
+result, _ := agent.Run(context.Background(), state)
 
-// Add a logging hook
-agent.WithHook(&core.LoggingHook{
-    Logger: slog.Default(),
-    Level:  core.LogLevelDetailed,
-})
-
-// Run the agent
-state := domain.NewState()
-state.Set("user_input", "What is the square root of 144?")
-
-resultState, err := agent.Run(context.Background(), state)
-if err != nil {
-    log.Fatalf("Agent error: %v", err)
-}
-
-output, _ := resultState.Get("output")
-fmt.Printf("Agent result: %v\n", output)
+output, _ := result.Get("output")
+fmt.Println(output) // "15% of 200 is 30"
 ```
 
-## Prompt Enhancement
+## What's Next?
 
-Enhance prompts with schema information:
+You've learned the basics! Here's where to go next:
 
-```go
-// Create a prompt enhancer
-enhancer := processor.NewPromptEnhancer()
+### Learn Core Concepts
+→ **[Core Concepts](core-concepts.md)** - Understand providers, messages, schemas, and agents
 
-// Enhance a prompt with schema information
-prompt := "Generate information about a person"
-enhancedPrompt, err := enhancer.Enhance(prompt, schema)
-if err != nil {
-    log.Fatalf("Enhancement error: %v", err)
-}
+### Choose Your Path
 
-// Use the enhanced prompt with your LLM provider
-response, err := provider.Generate(context.Background(), enhancedPrompt)
-```
+**Working with LLMs:**
+- [Providers Guide](providers.md) - Configure different LLM providers
+- [Structured Output](structured-output.md) - Extract structured data reliably
 
-## Convenience Utilities
+**Building Agents:**
+- [Agents Guide](agents.md) - Create autonomous agents
+- [Tools Guide](tools.md) - Use and create tools
+- [Workflows Guide](workflows.md) - Build complex workflows
 
-The library includes various convenience utilities:
+**Going Deeper:**
+- [Examples Gallery](examples-gallery.md) - See real-world examples
+- [API Reference](../api/) - Detailed API documentation
 
-```go
-// Create a provider from config
-config := llmutil.ModelConfig{
-    Provider: "openai",
-    Model:    "gpt-4o",
-    APIKey:   os.Getenv("OPENAI_API_KEY"),
-}
-provider, err := llmutil.CreateProvider(config)
+## Quick Tips
 
-// Generate responses in parallel
-prompts := []string{
-    "What is the capital of France?",
-    "Give me a recipe for pancakes",
-    "How many planets are in our solar system?",
-}
-results, errors := llmutil.BatchGenerate(context.Background(), provider, prompts)
+1. **API Keys**: Store them in environment variables, not in code
+2. **Error Handling**: Always check errors - LLM calls can fail
+3. **Context**: Use `context.Context` for timeouts and cancellation
+4. **Structured Output**: Define schemas for reliable data extraction
 
-// Generate with retry for transient errors
-result, err := llmutil.GenerateWithRetry(
-    context.Background(), 
-    provider, 
-    "Write a haiku about programming",
-    3, // max retries
-)
+## Need Help?
 
-// Create a provider pool for load balancing
-providerPool := llmutil.NewProviderPool(
-    []domain.Provider{provider1, provider2, provider3},
-    llmutil.StrategyRoundRobin,
-)
+- Check the [API Reference](../api/) for detailed documentation
+- Browse [Examples](../../cmd/examples/) for working code
+- Read about [Error Handling](error-handling.md) for robust applications
 
-// Create an agent from provider string
-agent, err := core.NewAgentFromString("my-agent", "openai")
-if err != nil {
-    log.Fatalf("Failed to create agent: %v", err)
-}
-agent.SetSystemPrompt("You are a helpful assistant with access to tools.")
-agent.AddTool(calculatorTool)
+---
 
-// Run an agent with timeout
-ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-defer cancel()
-
-state := domain.NewState()
-state.Set("user_input", "What is 7 * 6?")
-
-resultState, err := agent.Run(ctx, state)
-```
-
-## Next Steps
-
-Now that you're familiar with the basics, you can:
-
-1. Explore the [API Reference](/docs/api/) for detailed information about each component
-2. Review the [examples](/cmd/examples/) for more comprehensive examples
-3. Learn about [advanced validation features](advanced-validation.md)
-4. Understand [error handling patterns](error-handling.md)
-5. Explore [performance optimization strategies](/docs/technical/performance.md)
-
-Helper function for the examples above:
-
-```go
-func float64Ptr(v float64) *float64 {
-    return &v
-}
-```
+Ready to build something amazing? Let's go! 🚀

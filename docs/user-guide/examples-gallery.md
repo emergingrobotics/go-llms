@@ -1,503 +1,479 @@
 # Examples Gallery
 
-This gallery showcases various examples demonstrating Go-LLMs capabilities, organized by use case.
+Explore working examples to learn go-llms through hands-on code.
 
-## Quick Start Examples
+## 🚀 Getting Started
 
-### Getting Started Without API Keys
+### No API Key Required
 
-**[Simple](../../cmd/examples/simple/)** - Basic mock provider example
+These examples work without any setup - perfect for getting started!
+
+#### **Hello World with Mock Provider**
+📁 [simple](../../cmd/examples/simple/)  
+⭐ Difficulty: Beginner
+
+Your first go-llms program using a mock provider.
+
 ```bash
 cd cmd/examples/simple && go run main.go
 ```
-Perfect for understanding the basics without needing API keys.
 
-### Your First LLM Agent
+**What you'll learn:**
+- Basic provider setup
+- Making your first LLM call
+- Understanding responses
 
-**[Agent Simple LLM](../../cmd/examples/agent-simple-llm/)** - Minimal agent setup
+**Expected output:**
+```
+Response: This is a mock response for: Hello, AI!
+```
+
+---
+
+## 🤖 Building Your First Agent
+
+### Basic Agent Creation
+
+#### **Minimal LLM Agent**
+📁 [agent-simple-llm](../../cmd/examples/agent-simple-llm/)  
+⭐ Difficulty: Beginner  
+🔑 Requires: OpenAI API key
+
+Create your first agent in just a few lines of code.
+
 ```bash
 export OPENAI_API_KEY="your-key"
 cd cmd/examples/agent-simple-llm && go run main.go
 ```
-Shows how to create an agent with just a few lines of code.
 
-## Tool Integration Examples
+**What you'll learn:**
+- Creating an LLM agent
+- Setting system prompts
+- Basic agent interactions
+
+**Try this:** Modify the system prompt to create different agent personalities!
+
+---
+
+## 🛠️ Working with Tools
 
 ### Calculator and Math
 
-**[Agent Calculator](../../cmd/examples/agent-calculator/)** - Math operations with LLM
+#### **Natural Language Calculator**
+📁 [agent-calculator](../../cmd/examples/agent-calculator/)  
+⭐ Difficulty: Beginner  
+🔑 Requires: OpenAI API key (for LLM mode)
+
+Let an agent solve math problems using natural language.
+
 ```bash
-# LLM mode (default)
+# Agent solves math with natural language
 cd cmd/examples/agent-calculator && go run main.go
 
-# Direct tool usage
+# Use calculator directly (no LLM needed)
 go run main.go direct
 
-# Tool information
+# See tool information
 go run main.go info
 ```
-Demonstrates the enhanced calculator tool with natural language interface.
 
-### Web Research and APIs
+**What you'll learn:**
+- How agents use tools
+- Natural language to function calls
+- Direct tool usage vs agent-mediated usage
 
-**[Built-ins Web Tools](../../cmd/examples/builtins-web-tools/)** - Web scraping and search
+**Try this:** Ask complex word problems like "If I have 23 apples and give away 40%, how many do I have left?"
+
+### Web Tools
+
+#### **Web Search and Scraping**
+📁 [builtins-web-tools](../../cmd/examples/builtins-web-tools/)  
+⭐ Difficulty: Intermediate
+
+Search the web, fetch pages, and extract content.
+
 ```bash
 cd cmd/examples/builtins-web-tools && go run main.go
 ```
-Shows web search, fetch, scrape, and HTTP request tools.
 
-**[Built-ins Web API Client](../../cmd/examples/builtins-web-api-client/)** - REST API interactions
+**What you'll learn:**
+- Web search with multiple engines
+- Content extraction from URLs
+- HTML scraping with CSS selectors
+- Making HTTP requests
+
+**Features demonstrated:**
+- DuckDuckGo search (no API key needed)
+- Web page fetching and cleaning
+- Structured data extraction
+- Custom HTTP requests
+
+#### **REST API Client**
+📁 [builtins-web-api-client](../../cmd/examples/builtins-web-api-client/)  
+⭐ Difficulty: Intermediate
+
+Make authenticated API calls with automatic error handling.
+
 ```bash
 cd cmd/examples/builtins-web-api-client && go run main.go
 ```
-Advanced API client with authentication and error handling.
 
-**[Built-ins GraphQL Client](../../cmd/examples/builtins-graphql-client/)** - GraphQL APIs
+**What you'll learn:**
+- REST API interactions
+- Authentication methods (API key, Bearer, Basic)
+- Error handling and retries
+- Response parsing
+
+**Try this:** Modify to call your own APIs!
+
+#### **GraphQL Client**
+📁 [builtins-graphql-client](../../cmd/examples/builtins-graphql-client/)  
+⭐ Difficulty: Advanced  
+🔑 Requires: GitHub token (for GitHub GraphQL examples)
+
+Execute GraphQL queries and mutations.
+
 ```bash
+export GITHUB_TOKEN="your-token"
 cd cmd/examples/builtins-graphql-client && go run main.go
 ```
-GraphQL queries, mutations, and introspection.
+
+**What you'll learn:**
+- GraphQL query execution
+- Schema introspection
+- Variable handling
+- GraphQL error handling
 
 ### File Operations
 
-**[Built-ins File Tools](../../cmd/examples/builtins-file-tools/)** - File management
+#### **File Management Suite**
+📁 [builtins-file-tools](../../cmd/examples/builtins-file-tools/)  
+⭐ Difficulty: Beginner
+
+Complete file operations toolkit.
+
 ```bash
 cd cmd/examples/builtins-file-tools && go run main.go
 ```
-Read, write, list, search, and manage files safely.
+
+**What you'll learn:**
+- Safe file reading/writing
+- Directory listing with filters
+- File search with regex
+- Atomic file operations
+
+**Safety features:**
+- Permission checks
+- Atomic writes
+- Backup creation
+- Path validation
 
 ### Data Processing
 
-**[Built-ins Data Tools](../../cmd/examples/builtins-data-tools/)** - Structured data processing
+#### **JSON, CSV, and XML Processing**
+📁 [builtins-data-tools](../../cmd/examples/builtins-data-tools/)  
+⭐ Difficulty: Intermediate
+
+Transform and query structured data.
+
 ```bash
 cd cmd/examples/builtins-data-tools && go run main.go
 ```
-Process JSON, CSV, XML with queries and transformations.
 
-### Date and Time
+**What you'll learn:**
+- JSONPath queries
+- CSV filtering and statistics
+- XML to JSON conversion
+- Data transformations (map, filter, reduce)
 
-**[Built-ins DateTime Tools](../../cmd/examples/builtins-datetime-tools/)** - Time operations
-```bash
-cd cmd/examples/builtins-datetime-tools && go run main.go
-```
-Parse, format, calculate, and convert dates/times across timezones.
+**Cool features:**
+- Extract nested JSON values
+- Calculate CSV column statistics
+- Transform between formats
 
-### Feed Processing
+---
 
-**[Built-ins Feed Tools](../../cmd/examples/builtins-feed-tools/)** - RSS/Atom feeds
-```bash
-cd cmd/examples/builtins-feed-tools && go run main.go
-```
-Fetch, filter, aggregate, and convert news feeds.
+## 🎯 Structured Output
 
-### System Operations
+#### **Type-Safe LLM Responses**
+📁 [agent-structured-output](../../cmd/examples/agent-structured-output/)  
+⭐ Difficulty: Intermediate  
+🔑 Requires: OpenAI API key
 
-**[Built-ins System Tools](../../cmd/examples/builtins-system-tools/)** - System interaction
-```bash
-cd cmd/examples/builtins-system-tools && go run main.go
-```
-Execute commands, read environment, get system info safely.
+Get structured, validated data from LLMs.
 
-## Agent Patterns
-
-### Structured Output
-
-**[Agent Structured Output](../../cmd/examples/agent-structured-output/)** - Type-safe LLM responses
 ```bash
 export OPENAI_API_KEY="your-key"
 cd cmd/examples/agent-structured-output && go run main.go
 ```
-Extract structured data from LLM responses with validation.
 
-### Error Handling
+**What you'll learn:**
+- Define schemas for LLM output
+- Automatic validation
+- Type safety with Go structs
+- Error recovery strategies
 
-**[Agent Error Handling](../../cmd/examples/agent-error-handling/)** - Robust error management
-```bash
-export OPENAI_API_KEY="your-key"
-cd cmd/examples/agent-error-handling && go run main.go
+**Example output:**
+```json
+{
+  "name": "iPhone 15 Pro",
+  "price": 999.99,
+  "inStock": true,
+  "features": ["A17 Pro chip", "Titanium design", "Action button"]
+}
 ```
-Retry mechanisms, fallbacks, and graceful degradation.
 
-### Custom Agents
+---
 
-**[Agent Custom Research](../../cmd/examples/agent-custom-research/)** - Advanced orchestration
-```bash
-export OPENAI_API_KEY="your-key"
-cd cmd/examples/agent-custom-research && go run main.go
-```
-Build a research agent with multiple search engines and sub-agents.
-
-### Agent Tools
-
-**[Agent LLM Built-in Tools](../../cmd/examples/agent-llm-builtin-tools/)** - All tools showcase
-```bash
-export OPENAI_API_KEY="your-key"
-cd cmd/examples/agent-llm-builtin-tools && go run main.go research "Find Go concurrency patterns"
-```
-Demonstrates agents using different tool categories.
-
-### Metrics and Monitoring
-
-**[Agent Metrics Tools](../../cmd/examples/agent-metrics-tools/)** - Performance tracking
-```bash
-export OPENAI_API_KEY="your-key"
-cd cmd/examples/agent-metrics-tools && go run main.go
-```
-Monitor token usage, response times, and tool execution.
-
-## Workflow Examples
+## 🔄 Workflows
 
 ### Sequential Processing
 
-**[Workflow Sequential](../../cmd/examples/workflow-sequential/)** - Step-by-step workflows
+#### **Step-by-Step Workflows**
+📁 [workflow-sequential](../../cmd/examples/workflow-sequential/)  
+⭐ Difficulty: Intermediate
+
+Chain multiple agents in sequence.
+
 ```bash
 cd cmd/examples/workflow-sequential && go run main.go
 ```
-Chain agents for multi-step processing.
+
+**What you'll learn:**
+- Creating multi-step pipelines
+- State passing between agents
+- Error propagation
+- Step dependencies
+
+**Use case:** Data pipeline: Extract → Transform → Analyze → Report
 
 ### Parallel Execution
 
-**[Workflow Parallel](../../cmd/examples/workflow-parallel/)** - Concurrent workflows
+#### **Concurrent Agent Execution**
+📁 [workflow-parallel](../../cmd/examples/workflow-parallel/)  
+⭐ Difficulty: Intermediate
+
+Run multiple agents simultaneously.
+
 ```bash
 cd cmd/examples/workflow-parallel && go run main.go
 ```
-Run multiple agents in parallel with merge strategies.
+
+**What you'll learn:**
+- Parallel agent execution
+- Result merging strategies
+- Performance optimization
+- Concurrency control
+
+**Use case:** Analyze text for sentiment, keywords, and entities simultaneously
 
 ### Conditional Logic
 
-**[Workflow Conditional](../../cmd/examples/workflow-conditional/)** - Branching workflows
+#### **Dynamic Workflow Branching**
+📁 [workflow-conditional](../../cmd/examples/workflow-conditional/)  
+⭐ Difficulty: Advanced
+
+Route workflows based on conditions.
+
 ```bash
 cd cmd/examples/workflow-conditional && go run main.go
 ```
-Dynamic routing based on conditions.
 
-### Loops and Iteration
+**What you'll learn:**
+- Conditional branching
+- Dynamic routing
+- State-based decisions
+- Complex workflow logic
 
-**[Workflow Loop](../../cmd/examples/workflow-loop/)** - Iterative processing
-```bash
-cd cmd/examples/workflow-loop && go run main.go
-```
-Fixed count, while, and until loops.
+**Use case:** Customer support routing based on issue type
 
-### Complex Orchestration
+---
 
-**[Workflow Composition](../../cmd/examples/workflow-composition/)** - Nested workflows
-```bash
-cd cmd/examples/workflow-composition && go run main.go
-```
-Compose complex workflows from simpler ones.
+## 🌐 Multi-Provider Strategies
 
-## Multi-Provider Examples
+#### **Reliability Through Multiple Providers**
+📁 [provider-multi](../../cmd/examples/provider-multi/)  
+⭐ Difficulty: Advanced  
+🔑 Requires: Multiple API keys
 
-### Provider Strategies
+Use multiple LLM providers for reliability and performance.
 
-**[Provider Multi](../../cmd/examples/provider-multi/)** - Multiple providers
 ```bash
 export OPENAI_API_KEY="your-key"
 export ANTHROPIC_API_KEY="your-key"
 cd cmd/examples/provider-multi && go run main.go
 ```
-Fastest, primary with fallback, load balancing.
 
-### Consensus
+**What you'll learn:**
+- Fallback strategies
+- Load balancing
+- Provider selection
+- Cost optimization
 
-**[Provider Consensus](../../cmd/examples/provider-consensus/)** - Agreement strategies
+**Strategies demonstrated:**
+- Primary with fallback
+- Fastest response wins
+- Round-robin distribution
+
+---
+
+## 🎨 Advanced Patterns
+
+### Custom Research Agent
+
+#### **Multi-Source Research System**
+📁 [agent-custom-research](../../cmd/examples/agent-custom-research/)  
+⭐ Difficulty: Advanced  
+🔑 Requires: OpenAI API key + search API keys
+
+Build a sophisticated research agent.
+
 ```bash
 export OPENAI_API_KEY="your-key"
-export ANTHROPIC_API_KEY="your-key"
-export GEMINI_API_KEY="your-key"
-cd cmd/examples/provider-consensus && go run main.go
+export BRAVE_API_KEY="your-key"  # Optional
+export TAVILY_API_KEY="your-key"  # Optional
+cd cmd/examples/agent-custom-research && go run main.go
 ```
-Get consensus from multiple providers.
 
-### Agent-Level Multi-Provider
+**What you'll learn:**
+- Multi-phase research workflows
+- Source aggregation
+- Fact checking
+- Report generation
 
-**[Workflow Multi-Provider](../../cmd/examples/workflow-multi-provider/)** - Agent strategies
-```bash
-export OPENAI_API_KEY="your-key"
-export ANTHROPIC_API_KEY="your-key"
-cd cmd/examples/workflow-multi-provider && go run main.go
-```
-Multi-provider patterns at the agent level.
+**Architecture:**
+- Web search phase
+- Content analysis phase  
+- Synthesis phase
+- Report generation
 
-## Advanced Features
+### State Persistence
 
-### Tool Conversion
+#### **Save and Resume Agent State**
+📁 [agent-state-persistence](../../cmd/examples/agent-state-persistence/)  
+⭐ Difficulty: Advanced
 
-**[Agent Tools Conversion](../../cmd/examples/agent-tools-conversion/)** - Tools ↔ Agents
-```bash
-cd cmd/examples/agent-tools-conversion && go run main.go
-```
-Convert between tools and agents bidirectionally.
+Persist agent conversations and state.
 
-### Workflow as Tool
-
-**[Agent Workflow as Tool](../../cmd/examples/agent-workflow-as-tool/)** - Wrap workflows
-```bash
-export OPENAI_API_KEY="your-key"
-cd cmd/examples/agent-workflow-as-tool && go run main.go
-```
-Use complex workflows as simple tools.
-
-### State Management
-
-**[Agent State Persistence](../../cmd/examples/agent-state-persistence/)** - Save/load state
 ```bash
 cd cmd/examples/agent-state-persistence && go run main.go
 ```
-Persist agent state across sessions.
 
-### Guardrails
+**What you'll learn:**
+- State serialization
+- Session management
+- Conversation history
+- Resume capabilities
 
-**[Agent Guardrails](../../cmd/examples/agent-guardrails/)** - Safety controls
-```bash
-export OPENAI_API_KEY="your-key"
-cd cmd/examples/agent-guardrails && go run main.go
-```
-Input validation and output filtering.
+---
 
-### Agent Handoff
+## 🖼️ Multimodal Examples
 
-**[Agent Handoff](../../cmd/examples/agent-handoff/)** - Agent delegation
-```bash
-export OPENAI_API_KEY="your-key"
-cd cmd/examples/agent-handoff && go run main.go
-```
-Pass control between specialized agents.
+#### **Image, Audio, and Video Processing**
+📁 [provider-multimodal](../../cmd/examples/provider-multimodal/)  
+⭐ Difficulty: Intermediate  
+🔑 Requires: Provider API key
 
-### Multi-Agent Coordination
+Work with images, audio, and video content.
 
-**[Agent Multi-Coordination](../../cmd/examples/agent-multi-coordination/)** - Agent teams
-```bash
-export OPENAI_API_KEY="your-key"
-cd cmd/examples/agent-multi-coordination && go run main.go
-```
-Coordinate multiple agents for complex tasks.
-
-## Provider-Specific Examples
-
-### OpenAI
-
-**[Provider OpenAI](../../cmd/examples/provider-openai/)** - OpenAI integration
-```bash
-export OPENAI_API_KEY="your-key"
-cd cmd/examples/provider-openai && go run main.go
-```
-GPT-4, structured output, streaming.
-
-### Anthropic
-
-**[Provider Anthropic](../../cmd/examples/provider-anthropic/)** - Claude integration
-```bash
-export ANTHROPIC_API_KEY="your-key"
-cd cmd/examples/provider-anthropic && go run main.go
-```
-Claude models with specific optimizations.
-
-### Google Gemini
-
-**[Provider Gemini](../../cmd/examples/provider-gemini/)** - Gemini integration
-```bash
-export GEMINI_API_KEY="your-key"
-cd cmd/examples/provider-gemini && go run main.go
-```
-Gemini models with multimodal support.
-
-### OpenAI Compatible
-
-**[Provider OpenAI Compatible](../../cmd/examples/provider-openai-compatible/)** - Compatible APIs
-```bash
-# For OpenRouter
-export OPENROUTER_API_KEY="your-key"
-cd cmd/examples/provider-openai-compatible && go run main.go
-
-# For Ollama (local)
-cd cmd/examples/provider-openai-compatible && go run main.go
-```
-OpenRouter, Ollama, and custom endpoints.
-
-### Multimodal
-
-**[Provider Multimodal](../../cmd/examples/provider-multimodal/)** - Images and media
 ```bash
 export OPENAI_API_KEY="your-key"
 cd cmd/examples/provider-multimodal && go run main.go -provider openai -mode image -a image.jpg
 ```
-Process images, audio, and video across providers.
 
-## Utility Examples
+**What you'll learn:**
+- Image analysis
+- Audio transcription
+- Video understanding
+- Mixed media conversations
 
-### Model Discovery
+**Supported modes:**
+- `-mode image`: Analyze images
+- `-mode audio`: Transcribe audio
+- `-mode video`: Process video content
 
-**[Utils Model Info](../../cmd/examples/utils-modelinfo/)** - Model capabilities
+---
+
+## 📚 Learning Paths
+
+### Beginner Path
+1. Start with [simple](../../cmd/examples/simple/) - no API key needed
+2. Try [agent-calculator](../../cmd/examples/agent-calculator/) - see tools in action
+3. Explore [builtins-file-tools](../../cmd/examples/builtins-file-tools/) - practical file operations
+4. Build with [agent-simple-llm](../../cmd/examples/agent-simple-llm/) - your first real agent
+
+### Intermediate Path
+1. Master [agent-structured-output](../../cmd/examples/agent-structured-output/) - reliable data extraction
+2. Learn [workflow-sequential](../../cmd/examples/workflow-sequential/) - multi-step processes
+3. Try [workflow-parallel](../../cmd/examples/workflow-parallel/) - concurrent execution
+4. Implement [agent-error-handling](../../cmd/examples/agent-error-handling/) - robust applications
+
+### Advanced Path
+1. Study [agent-custom-research](../../cmd/examples/agent-custom-research/) - complex orchestration
+2. Implement [provider-multi](../../cmd/examples/provider-multi/) - high availability
+3. Master [workflow-conditional](../../cmd/examples/workflow-conditional/) - dynamic workflows
+4. Build with [agent-multi-coordination](../../cmd/examples/agent-multi-coordination/) - agent teams
+
+---
+
+## 💡 Tips for Success
+
+### Running Examples
+
+1. **Check Requirements**: Each example's README lists required API keys
+2. **Start Simple**: Begin with examples that don't need API keys
+3. **Read the Code**: Examples are well-commented learning resources
+4. **Modify and Experiment**: Change prompts, add tools, adjust workflows
+5. **Check Debug Output**: Use `DEBUG=1` for detailed logging
+
+### Environment Setup
+
 ```bash
+# Basic setup for most examples
 export OPENAI_API_KEY="your-key"
-cd cmd/examples/utils-modelinfo && go run main.go
-```
-Discover and compare model capabilities.
-
-### Performance Profiling
-
-**[Utils Profiling](../../cmd/examples/utils-profiling/)** - Performance analysis
-```bash
-cd cmd/examples/utils-profiling && go run main.go
-```
-CPU and memory profiling tools.
-
-### Schema Validation
-
-**[Structured Schema](../../cmd/examples/structured-schema/)** - Schema generation
-```bash
-cd cmd/examples/structured-schema && go run main.go
-```
-Generate and validate JSON schemas.
-
-**[Structured Coercion](../../cmd/examples/structured-coercion/)** - Type coercion
-```bash
-cd cmd/examples/structured-coercion && go run main.go
-```
-Flexible type conversion and validation.
-
-## Discovery Examples
-
-### Tool Discovery
-
-**[Built-ins Discovery](../../cmd/examples/builtins-discovery/)** - Find tools
-```bash
-cd cmd/examples/builtins-discovery && go run main.go
-```
-Discover available tools by category and search.
-
-### API Discovery
-
-**[Built-ins OpenAPI Discovery](../../cmd/examples/builtins-openapi-discovery/)** - API exploration
-```bash
-cd cmd/examples/builtins-openapi-discovery && go run main.go
-```
-Discover API endpoints from OpenAPI specs.
-
-### Authentication Patterns
-
-**[Built-ins API Client Auth](../../cmd/examples/builtins-api-client-auth/)** - Auth methods
-```bash
-cd cmd/examples/builtins-api-client-auth && go run main.go
-```
-Various authentication patterns for APIs.
-
-### Parallel Search
-
-**[Built-ins Web Search Parallel](../../cmd/examples/builtins-web-search-parallel/)** - Multi-engine search
-```bash
-cd cmd/examples/builtins-web-search-parallel && go run main.go
-```
-Search across multiple engines in parallel.
-
-## Integration Patterns
-
-### Hooks and Monitoring
-
-**[Workflow Hooks](../../cmd/examples/workflow-hooks/)** - Instrumentation
-```bash
-cd cmd/examples/workflow-hooks && go run main.go
-```
-Add logging, metrics, and monitoring to workflows.
-
-### Advanced Tool Context
-
-**[Agent Advanced Tool Context](../../cmd/examples/agent-advanced-toolcontext/)** - Tool features
-```bash
-cd cmd/examples/agent-advanced-toolcontext && go run main.go
-```
-State access and event emission from tools.
-
-### Sub-Agents
-
-**[Agent Sub-Agents](../../cmd/examples/agent-sub-agents/)** - Agent hierarchy
-```bash
-export OPENAI_API_KEY="your-key"
-cd cmd/examples/agent-sub-agents && go run main.go
-```
-Agents using other agents as tools.
-
-## Tips for Running Examples
-
-1. **Start Simple**: Begin with the `simple` example to understand basics
-2. **Check Requirements**: Some examples need API keys (see each README)
-3. **Use Debug Mode**: Set `DEBUG=1` for detailed logging
-4. **Read READMEs**: Each example has detailed documentation
-5. **Modify and Experiment**: Examples are designed to be modified
-
-## Environment Setup
-
-Most examples use these environment variables:
-
-```bash
-# Provider API Keys
-export OPENAI_API_KEY="your-key"
-export ANTHROPIC_API_KEY="your-key"
+export ANTHROPIC_API_KEY="your-key"  
 export GEMINI_API_KEY="your-key"
 
-# Optional: Debug logging
+# Optional for specific examples
+export BRAVE_API_KEY="your-key"      # Web search
+export TAVILY_API_KEY="your-key"     # AI-optimized search
+export GITHUB_TOKEN="your-key"       # GitHub API examples
+
+# Enable debug mode
 export DEBUG=1
-
-# Optional: Custom endpoints
-export OPENAI_BASE_URL="https://api.openai.com"
 ```
 
-## Building Examples
+### Common Patterns
 
-Build all examples:
-```bash
-make build-examples
-```
+All examples follow similar patterns:
 
-Build specific example:
-```bash
-make build-example EXAMPLE=agent-calculator
-```
-
-## Creating Your Own Examples
-
-1. Create directory: `cmd/examples/my-example/`
-2. Add `main.go` with ABOUTME comments
-3. Add `README.md` with documentation
-4. Follow existing patterns
-5. Test thoroughly
-6. Update this gallery
-
-## Common Patterns
-
-### Creating an Agent
 ```go
-deps := core.LLMDeps{Provider: provider}
-agent := core.NewLLMAgent("my-agent", "My Agent", deps)
-agent.SetSystemPrompt("You are a helpful assistant")
-```
+// 1. Create provider
+provider := provider.NewOpenAIProvider(apiKey, model)
 
-### Adding Tools
-```go
+// 2. Create agent 
+agent := core.NewLLMAgent("my-agent", provider)
+
+// 3. Add tools (optional)
 agent.AddTool(tools.MustGetTool("web_search"))
-agent.AddTool(tools.MustGetTool("file_read"))
-```
 
-### Running Agent
-```go
+// 4. Run with state
 state := domain.NewState()
-state.Set("prompt", "Your task here")
+state.Set("task", "your task here")
 result, err := agent.Run(ctx, state)
 ```
 
-### Using Workflows
-```go
-workflow := workflow.NewSequentialWorkflow("my-workflow")
-workflow.AddStep("step1", agent1)
-workflow.AddStep("step2", agent2)
-result, err := workflow.Run(ctx, state)
-```
+---
 
-## Need Help?
+## 🛠️ Building Your Own
 
-- Check example READMEs for detailed documentation
-- Review test files for additional usage patterns
-- See main documentation for API reference
-- Open issues for bugs or feature requests
+After exploring these examples:
+
+1. **Copy an example** as your starting point
+2. **Modify gradually** - change one thing at a time
+3. **Combine patterns** - mix tools, agents, and workflows
+4. **Share your creation** - contribute back to the community!
+
+---
+
+Ready to explore? Pick an example and start coding! 🚀

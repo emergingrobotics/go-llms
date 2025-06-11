@@ -1,230 +1,496 @@
-# Multimodal Content Support
+# Working with Multimodal Content
 
-> **[Documentation Home](/REFERENCE.md) / [User Guide](README.md) / Multimodal Content**
-
-Go-LLMs provides comprehensive support for multimodal content across all supported LLM providers. This guide explains how to use multimodal content types such as images, videos, audio, and files in your applications.
-
-For technical implementation details, see the [Multimodal Content Implementation](../technical/multimodal-content.md) documentation.
+Learn how to use images, audio, video, and files with LLMs in go-llms.
 
 ## Overview
 
-Modern LLM providers support various types of content beyond just text. Go-LLMs offers a unified way to work with:
+Modern LLMs can understand more than just text. With go-llms, you can send:
+- **Images** - Photos, diagrams, screenshots
+- **Audio** - Voice recordings, music, sounds
+- **Video** - Clips and recordings
+- **Files** - Documents like PDFs
 
-- **Text**: Basic text messages
-- **Images**: Both base64-encoded images and URL references
-- **Files**: Documents and other file types
-- **Videos**: Video content in various formats
-- **Audio**: Audio content in various formats
+## Provider Support
 
-Each provider has different capabilities regarding which content types they support:
+Not all providers support all content types:
 
-| Provider  | Text | Images | Files | Videos | Audio |
-|-----------|------|--------|-------|--------|-------|
-| OpenAI    | ✅   | ✅     | ✅    | ✅     | ✅    |
-| Anthropic | ✅   | ✅     | ✅    | ✅     | ✅    |
-| Gemini    | ✅   | ✅     | ✅    | ✅     | ✅    |
+| Provider  | Text | Images | Audio | Video | Files |
+|-----------|------|--------|-------|-------|-------|
+| OpenAI    | ✅   | ✅     | ✅    | ✅    | ✅    |
+| Anthropic | ✅   | ✅     | ❌    | ❌    | ❌    |
+| Gemini    | ✅   | ✅     | ✅    | ✅    | ❌    |
 
-When using unsupported content types, the library will return a clear error with detailed information.
+Don't worry - go-llms handles unsupported types gracefully with clear error messages.
 
-## Creating Multimodal Messages
+## Sending Images
 
-### Text Messages
-
-Creating a simple text message:
+### From a File
 
 ```go
-// Create a text message
-textMessage := domain.NewTextMessage(domain.RoleUser, "Hello, world!")
-```
+import (
+    "os"
+    "github.com/lexlapax/go-llms/pkg/llm/domain"
+)
 
-### Image Messages
+// Read image file
+imageData, err := os.ReadFile("photo.jpg")
+if err != nil {
+    log.Fatal(err)
+}
 
-Sending images with text:
-
-```go
-// Using base64-encoded image data
-imageData, _ := ioutil.ReadFile("image.jpg")
-imageMessage := domain.NewImageMessage(
+// Create image message
+message := domain.NewImageMessage(
     domain.RoleUser,
     imageData,
     "image/jpeg",
-    "What's in this image?"
+    "What's in this photo?",
 )
 
-// Using image URL
-imageURLMessage := domain.NewImageURLMessage(
+// Send to LLM
+response, err := provider.GenerateMessage(ctx, []domain.Message{message})
+```
+
+### From a URL
+
+```go
+// Use an image URL directly
+message := domain.NewImageURLMessage(
     domain.RoleUser,
-    "https://example.com/image.jpg",
-    "What's in this image?"
+    "https://example.com/chart.png",
+    "Explain this chart",
+)
+
+response, err := provider.GenerateMessage(ctx, []domain.Message{message})
+```
+
+### Common Image Use Cases
+
+```go
+// Analyze a chart
+chartMsg := domain.NewImageMessage(
+    domain.RoleUser,
+    chartData,
+    "image/png",
+    "What trends do you see in this chart?",
+)
+
+// OCR text from image
+textMsg := domain.NewImageMessage(
+    domain.RoleUser,
+    documentImage,
+    "image/jpeg",
+    "Extract all text from this image",
+)
+
+// Describe a scene
+sceneMsg := domain.NewImageMessage(
+    domain.RoleUser,
+    photoData,
+    "image/jpeg",
+    "Describe what's happening in this photo in detail",
 )
 ```
 
-### File Messages
+## Sending Audio
 
-Sending file attachments:
-
-```go
-// Read and send a PDF file
-fileData, _ := ioutil.ReadFile("document.pdf")
-fileMessage := domain.NewFileMessage(
-    domain.RoleUser,
-    "document.pdf",
-    fileData,
-    "application/pdf",
-    "Please analyze this document."
-)
-```
-
-### Video Messages
-
-Sending video content:
+Audio support lets you transcribe, analyze, and understand audio content:
 
 ```go
-// Read and send a video file
-videoData, _ := ioutil.ReadFile("video.mp4")
-videoMessage := domain.NewVideoMessage(
-    domain.RoleUser,
-    videoData,
-    "video/mp4",
-    "What's happening in this video?"
-)
-```
+// Read audio file
+audioData, err := os.ReadFile("recording.mp3")
+if err != nil {
+    log.Fatal(err)
+}
 
-### Audio Messages
-
-Sending audio content:
-
-```go
-// Read and send an audio file
-audioData, _ := ioutil.ReadFile("audio.mp3")
-audioMessage := domain.NewAudioMessage(
+// Create audio message
+message := domain.NewAudioMessage(
     domain.RoleUser,
     audioData,
     "audio/mp3",
-    "What is said in this audio?"
+    "Transcribe this recording",
+)
+
+// Send to provider
+response, err := provider.GenerateMessage(ctx, []domain.Message{message})
+```
+
+### Audio Use Cases
+
+```go
+// Transcription
+transcribeMsg := domain.NewAudioMessage(
+    domain.RoleUser,
+    audioData,
+    "audio/wav",
+    "Transcribe this interview",
+)
+
+// Analysis
+analyzeMsg := domain.NewAudioMessage(
+    domain.RoleUser,
+    musicData,
+    "audio/mp3",
+    "What instruments do you hear?",
+)
+
+// Translation
+translateMsg := domain.NewAudioMessage(
+    domain.RoleUser,
+    speechData,
+    "audio/mp3",
+    "Translate this speech to English",
 )
 ```
 
-## Handling Provider Limitations
+## Sending Video
 
-When a content type is not supported by a provider, the library will return an `UnsupportedContentTypeError`:
+Analyze video content for actions, objects, and events:
 
 ```go
-// Try to send video to Anthropic (unsupported)
-videoMessage := domain.NewVideoMessage(
+// Read video file
+videoData, err := os.ReadFile("clip.mp4")
+if err != nil {
+    log.Fatal(err)
+}
+
+// Create video message
+message := domain.NewVideoMessage(
     domain.RoleUser,
     videoData,
     "video/mp4",
-    "What's happening in this video?"
+    "Summarize what happens in this video",
 )
 
-// This will return an error since Anthropic doesn't support video
-response, err := anthropicProvider.GenerateMessage(ctx, []domain.Message{videoMessage})
+response, err := provider.GenerateMessage(ctx, []domain.Message{message})
+```
+
+### Video Use Cases
+
+```go
+// Action recognition
+actionMsg := domain.NewVideoMessage(
+    domain.RoleUser,
+    sportsClip,
+    "video/mp4",
+    "Describe the techniques shown in this sports clip",
+)
+
+// Content moderation
+moderateMsg := domain.NewVideoMessage(
+    domain.RoleUser,
+    userVideo,
+    "video/mp4",
+    "Is this video appropriate for all ages?",
+)
+
+// Tutorial analysis
+tutorialMsg := domain.NewVideoMessage(
+    domain.RoleUser,
+    howToVideo,
+    "video/mp4",
+    "List the steps shown in this tutorial",
+)
+```
+
+## Sending Files
+
+Send documents for analysis, summarization, or extraction:
+
+```go
+// Read document
+pdfData, err := os.ReadFile("report.pdf")
+if err != nil {
+    log.Fatal(err)
+}
+
+// Create file message
+message := domain.NewFileMessage(
+    domain.RoleUser,
+    "report.pdf",
+    pdfData,
+    "application/pdf",
+    "Summarize the key findings in this report",
+)
+
+response, err := provider.GenerateMessage(ctx, []domain.Message{message})
+```
+
+## Combining Content Types
+
+Mix different content types in conversations:
+
+```go
+messages := []domain.Message{
+    // System prompt
+    domain.NewTextMessage(
+        domain.RoleSystem,
+        "You are a helpful analyst",
+    ),
+    
+    // Send an image
+    domain.NewImageMessage(
+        domain.RoleUser,
+        chartData,
+        "image/png",
+        "What does this chart show?",
+    ),
+    
+    // LLM responds
+    domain.NewTextMessage(
+        domain.RoleAssistant,
+        "This chart shows quarterly revenue growth...",
+    ),
+    
+    // Follow-up with document
+    domain.NewFileMessage(
+        domain.RoleUser,
+        "q4-report.pdf",
+        reportData,
+        "application/pdf",
+        "How does this compare to the Q4 report?",
+    ),
+}
+
+response, err := provider.GenerateMessage(ctx, messages)
+```
+
+## Handling Size Limits
+
+Each provider has file size limits:
+
+```go
+const (
+    OpenAIMaxSize    = 25 * 1024 * 1024  // 25MB
+    AnthropicMaxSize = 3.75 * 1024 * 1024 // 3.75MB
+    GeminiMaxSize    = 20 * 1024 * 1024  // 20MB
+)
+
+// Check file size before sending
+fileInfo, _ := os.Stat("large-file.pdf")
+if fileInfo.Size() > OpenAIMaxSize {
+    log.Fatal("File too large for OpenAI")
+}
+
+// Or compress/resize if needed
+if fileInfo.Size() > AnthropicMaxSize {
+    // Resize image
+    resizedData := resizeImage(imageData, 1024, 768)
+    message := domain.NewImageMessage(
+        domain.RoleUser,
+        resizedData,
+        "image/jpeg",
+        "Analyze this image",
+    )
+}
+```
+
+## Error Handling
+
+Handle unsupported content types gracefully:
+
+```go
+// Try to send video to Anthropic
+videoMsg := domain.NewVideoMessage(
+    domain.RoleUser,
+    videoData,
+    "video/mp4",
+    "What's in this video?",
+)
+
+response, err := anthropicProvider.GenerateMessage(ctx, []domain.Message{videoMsg})
 if err != nil {
     if domain.IsUnsupportedContentTypeError(err) {
-        // Handle unsupported content type error gracefully
-        fmt.Printf("Provider %s doesn't support content type %s\n", 
-            err.(*domain.UnsupportedContentTypeError).Provider,
-            err.(*domain.UnsupportedContentTypeError).ContentType)
+        // Fallback to a different approach
+        log.Printf("Video not supported, extracting frames instead...")
+        
+        // Extract key frames as images
+        frames := extractKeyFrames(videoData)
+        for i, frame := range frames {
+            imgMsg := domain.NewImageMessage(
+                domain.RoleUser,
+                frame,
+                "image/jpeg",
+                fmt.Sprintf("Frame %d: What do you see?", i+1),
+            )
+            // Process each frame
+        }
     }
 }
 ```
 
-## Advanced Usage: Multiple Content Types
+## Best Practices
 
-You can combine multiple content types in a single conversation:
-
+### 1. Choose the Right Format
 ```go
-// Create a conversation with multiple content types
-messages := []domain.Message{
-    domain.NewTextMessage(domain.RoleSystem, "You are a helpful assistant."),
-    domain.NewImageMessage(domain.RoleUser, imageData, "image/jpeg", "What's in this image?"),
-    domain.NewTextMessage(domain.RoleAssistant, "I see a cat in the image."),
-    domain.NewTextMessage(domain.RoleUser, "What breed is it?"),
-}
+// For text extraction, use high-res images
+highResImage := captureScreenshot(300) // 300 DPI
 
-// Send to the provider
-response, err := provider.GenerateMessage(ctx, messages)
+// For general analysis, standard resolution is fine
+standardImage := captureScreenshot(72) // 72 DPI
 ```
 
-## Provider-Specific Considerations
-
-### OpenAI
-
-OpenAI supports all content types and offers the most comprehensive multimodal capabilities. For images, OpenAI expects a specific format for base64-encoded images:
-
-```
-data:<mime-type>;base64,<base64-data>
-```
-
-The library handles this conversion automatically.
-
-### Anthropic
-
-Anthropic Claude supports text and image content. For images, it uses a specific format:
-
-```json
-{
-  "type": "image",
-  "source": {
-    "type": "base64",
-    "media_type": "image/jpeg",
-    "data": "<base64-data>"
-  }
-}
-```
-
-Attempting to use unsupported content types (files, videos, audio) will result in an error.
-
-### Gemini
-
-Google Gemini supports text, image, and video content. It uses a specific format for media:
-
-```json
-{
-  "inline_data": {
-    "mime_type": "image/jpeg",
-    "data": "<base64-data>"
-  }
-}
-```
-
-Attempting to use unsupported content types (files, audio) will result in an error.
-
-## Performance Considerations
-
-When working with multimodal content, keep in mind:
-
-1. **Size Limits**: Each provider has different limits on file sizes:
-   - OpenAI: 25MB for most content
-   - Anthropic: 3.75MB for images
-   - Gemini: 20MB for inline data
-
-2. **Base64 Encoding**: Base64 encoding increases the size of binary data by approximately 33%.
-
-3. **Message Caching**: The library implements caching for converted messages to improve performance when sending the same messages multiple times.
-
-## Error Handling
-
-The library provides specific error types for handling multimodal content issues:
-
+### 2. Provide Clear Instructions
 ```go
-// Check for unsupported content type errors
-if domain.IsUnsupportedContentTypeError(err) {
-    // Handle accordingly
-}
+// Be specific about what you want
+vague := "What's this?"
+better := "Identify all objects in this image and their locations"
+best := "List each person in this photo with their apparent age, clothing, and activity"
+```
 
-// Check for content validation errors
-if errors.As(err, &domain.ErrContentTypeValidationFailed{}) {
-    // Handle validation errors (e.g., file too large)
+### 3. Optimize File Sizes
+```go
+// Compress before sending
+compressedImage := compressJPEG(imageData, 85) // 85% quality
+
+// Convert formats if needed
+pngData := convertToPNG(jpegData) // Some providers prefer PNG
+```
+
+### 4. Handle Fallbacks
+```go
+func analyzeContent(provider domain.Provider, content []byte, mimeType string) (string, error) {
+    // Try video first
+    if strings.HasPrefix(mimeType, "video/") {
+        msg := domain.NewVideoMessage(domain.RoleUser, content, mimeType, "Analyze this")
+        if response, err := provider.GenerateMessage(ctx, []domain.Message{msg}); err == nil {
+            return response.Content, nil
+        }
+    }
+    
+    // Fallback to image frames
+    if frames := extractFrames(content); len(frames) > 0 {
+        msg := domain.NewImageMessage(domain.RoleUser, frames[0], "image/jpeg", "Analyze this")
+        if response, err := provider.GenerateMessage(ctx, []domain.Message{msg}); err == nil {
+            return response.Content, nil
+        }
+    }
+    
+    // Final fallback to text description
+    return "Unable to analyze visual content", nil
 }
 ```
 
-## Examples
+## Real-World Examples
 
-For complete examples of working with multimodal content, check out the following example applications:
+### Document Analysis Pipeline
+```go
+func analyzeDocument(provider domain.Provider, docPath string) (*Analysis, error) {
+    // Read document
+    docData, err := os.ReadFile(docPath)
+    if err != nil {
+        return nil, err
+    }
+    
+    // Create conversation
+    messages := []domain.Message{
+        domain.NewTextMessage(
+            domain.RoleSystem,
+            "You are a document analyst. Extract key information clearly.",
+        ),
+        domain.NewFileMessage(
+            domain.RoleUser,
+            filepath.Base(docPath),
+            docData,
+            "application/pdf",
+            "Extract: 1) Summary 2) Key points 3) Action items 4) Dates",
+        ),
+    }
+    
+    // Get analysis
+    response, err := provider.GenerateMessage(ctx, messages)
+    if err != nil {
+        return nil, err
+    }
+    
+    // Parse structured response
+    return parseAnalysis(response.Content), nil
+}
+```
 
-- [Multimodal Example](/cmd/examples/multimodal/) - Comprehensive multimodal example with support for all content types
-- `cmd/examples/provider-openai/multimodal.go` - Using multimodal content with OpenAI
-- `cmd/examples/provider-anthropic/vision.go` - Using vision capabilities with Anthropic Claude
-- `cmd/examples/provider-gemini/multimodal.go` - Using multimodal content with Google Gemini
+### Visual QA System
+```go
+func visualQA(provider domain.Provider, imagePath string, question string) (string, error) {
+    imageData, err := os.ReadFile(imagePath)
+    if err != nil {
+        return "", err
+    }
+    
+    messages := []domain.Message{
+        domain.NewImageMessage(
+            domain.RoleUser,
+            imageData,
+            "image/jpeg",
+            question,
+        ),
+    }
+    
+    response, err := provider.GenerateMessage(ctx, messages)
+    if err != nil {
+        return "", err
+    }
+    
+    return response.Content, nil
+}
+
+// Usage
+answer, _ := visualQA(provider, "diagram.png", "Explain how this system works")
+```
+
+### Multi-Modal Assistant
+```go
+func processUserInput(provider domain.Provider, input UserInput) (string, error) {
+    var messages []domain.Message
+    
+    // Add system prompt
+    messages = append(messages, domain.NewTextMessage(
+        domain.RoleSystem,
+        "You are a helpful assistant that can analyze various content types.",
+    ))
+    
+    // Add user content based on type
+    switch input.Type {
+    case "image":
+        messages = append(messages, domain.NewImageMessage(
+            domain.RoleUser,
+            input.Data,
+            input.MimeType,
+            input.Question,
+        ))
+    case "audio":
+        messages = append(messages, domain.NewAudioMessage(
+            domain.RoleUser,
+            input.Data,
+            input.MimeType,
+            input.Question,
+        ))
+    case "document":
+        messages = append(messages, domain.NewFileMessage(
+            domain.RoleUser,
+            input.Filename,
+            input.Data,
+            input.MimeType,
+            input.Question,
+        ))
+    default:
+        messages = append(messages, domain.NewTextMessage(
+            domain.RoleUser,
+            input.Question,
+        ))
+    }
+    
+    response, err := provider.GenerateMessage(ctx, messages)
+    if err != nil {
+        return "", fmt.Errorf("failed to process %s: %w", input.Type, err)
+    }
+    
+    return response.Content, nil
+}
+```
+
+## Next Steps
+
+- See [Providers](providers.md) for provider-specific multimodal features
+- Check [Examples Gallery](examples-gallery.md#multimodal) for complete examples
+- Learn about [Structured Output](structured-output.md) to extract data from multimodal content
+
+Ready to go beyond text? Start building multimodal applications! 🖼️🎵🎬
