@@ -3,8 +3,81 @@
 ## v0.3.1 Release (Ready)
 - [ ] 0.3.1.1: Tag release v0.3.1
 
-## v0.3.2: Enhanced Tool Capabilities
-### 0.3.2.1: Web API Client Advanced Features 
+## v0.3.2 Documentation simplification and refactoring
+### 0.3.2.1 API Documentation (docs/api)
+- [ ] Create tools.md - Tools API Documentation for pkg/agent/tools
+- [ ] Create workflows.md - Workflow API Documentation for pkg/agent/workflow
+- [ ] Create builtins.md - Built-ins API Documentation for pkg/agent/builtins
+- [ ] Create utils.md - Utilities API Documentation for pkg/util/*
+- [ ] Create testutils.md - Test Utilities API Documentation for pkg/testutils/*
+- [ ] Update agent.md - Focus on core agent concepts with cross-references to tools/workflows/builtins
+- [ ] Update llm.md - Ensure consistency with new structure
+- [ ] Update schema.md - Ensure consistency with new structure
+- [ ] Update structured.md - Ensure consistency with new structure
+- [ ] Update docs/api/README.md - Update index to reflect new modular structure
+### 0.3.2.2 Restructure of User Guide Documentation (docs/user-guide)
+#### Core Getting Started Flow
+- [ ] Create/Update getting-started.md - Installation and first program
+- [ ] Create core-concepts.md - Essential concepts (providers, messages, options)
+- [ ] Create providers.md - Working with different LLM providers (consolidate from existing)
+- [ ] Update structured-output.md - Keep focused on extracting structured data
+#### Advanced Features
+- [ ] Create agents.md - Building and using agents (user perspective)
+- [ ] Create tools.md - Merge builtin-tools.md and built-in-components.md
+- [ ] Create workflows.md - Composing agent workflows (user perspective)
+- [ ] Update multimodal-content.md - Keep focused on working with images/content
+#### Consolidation and Cleanup
+- [ ] Merge web-search-tool.md content into tools.md
+- [ ] Update examples-gallery.md - Make it a quick reference/index
+- [ ] Delete redundant files after merging
+- [ ] Move old/redundant files to docs/archives
+- [ ] Update docs/user-guide/README.md - New structure and learning path
+### 0.3.2.3 Restructure of Technical Documentation (docs/technical)
+#### Core Architecture Documentation
+- [ ] Update architecture.md - System design, components, and data flow
+- [ ] Create provider-implementation.md - How to add new LLM providers
+- [ ] Update tool-development.md - Internal tool architecture and patterns
+- [ ] Update performance.md - Performance considerations and optimizations
+#### Implementation Details
+- [ ] Update concurrency.md - Concurrency patterns used in the library
+- [ ] Update caching.md - Caching strategies and implementation
+- [ ] Update testing.md - Testing approach and guidelines
+- [ ] Update authentication.md - Auth system architecture
+#### Cleanup and Organization
+- [ ] Remove duplicate content (keep technical details here, user guides in user-guide/)
+- [ ] Move multimodal-content.md user aspects to user-guide, keep technical here
+- [ ] Move built-in-components.md user aspects to user-guide, keep technical here
+- [ ] Delete redundant files after content migration
+- [ ] Update docs/technical/README.md - New structure for contributors
+### 0.3.2.4 Restructure of archives (docs/archives)
+- [ ] Review and categorize all files in archives directory
+- [ ] Remove outdated design documents that are now fully implemented
+- [ ] Keep only historical context valuable for understanding decisions
+- [ ] Create archives/README.md explaining what's archived and why
+- [ ] Move docs/BETA_DOCUMENTATION_REVIEW.md to archives
+- [ ] Move docs/DOCUMENTATION_CONSOLIDATION.md to archives
+- [ ] Ensure consistent file naming (convert underscores to hyphens)
+### 0.3.2.5 Root Documentation (README.md and related documentation and root)
+#### README.md Simplification
+- [ ] Rewrite opening to clearly state go-llms value proposition
+- [ ] Simplify quick start section with minimal example
+- [ ] Create clear feature overview with links to detailed docs
+- [ ] Reduce code examples to bare essentials
+- [ ] Add clear navigation to different documentation sections
+#### REFERENCE.md Restructuring
+- [ ] Reorganize by user journey: Getting Started → Core Features → Advanced → Contributing
+- [ ] Update all links based on new documentation structure from 0.3.2.1-0.3.2.4
+- [ ] Group documentation by type (API Reference, User Guides, Technical Docs)
+- [ ] Add brief descriptions for each linked document
+#### Other Root Files
+- [ ] Create CHANGELOG.md consolidating all release notes
+- [ ] Move RELEASE_NOTES_v0.3.1.md content into CHANGELOG.md
+- [ ] Delete RELEASE_NOTES_v0.3.1.md after consolidation
+- [ ] Move docs/MIGRATION_GUIDE_PHASE5.md to docs/user-guide/migrations/
+- [ ] Ensure only approved markdown files remain in root
+
+## v0.3.4: Enhanced Tool Capabilities
+### 0.3.4.1: Web API Client Advanced Features 
 - [ ] Auto-Pagination: Automatically follow pagination links
 - [ ] Rate Limiting: Respect rate limit headers with intelligent backoff
 - [ ] Response Caching: Cache responses with configurable TTL
@@ -17,7 +90,7 @@
 - [ ] Multi-tenancy: Support multiple API configurations
 - [ ] Request Batching: Batch multiple requests for efficiency
 
-### 0.3.2.2: Authentication System Improvements 
+### 0.3.4.2: Authentication System Improvements 
 - [ ] Create AuthProvider interface with Name(), CanHandle(), Configure() methods
 - [ ] Implement AuthRegistry for managing multiple providers
 - [ ] Add configuration file support for custom auth mappings (YAML/JSON)
