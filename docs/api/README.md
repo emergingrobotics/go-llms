@@ -1,140 +1,157 @@
-# Go-LLMs API Documentation
+# API Reference
 
-> **[Documentation Home](/REFERENCE.md) / API Documentation**
+This section provides comprehensive API documentation for all go-llms packages, organized by functionality.
 
-This documentation provides detailed information about the Go-LLMs public API, organized by packages and features.
+## Core Packages
 
-*Related: [User Guide](/docs/user-guide/) | [Technical Documentation](/docs/technical/)*
+### LLM Integration
+- **[LLM API](llm.md)** - Language model provider integration
+  - Unified interface for OpenAI, Anthropic, Google Gemini
+  - Multi-provider strategies for reliability
+  - Streaming and structured generation support
 
-## Core Features
+### Data Validation
+- **[Schema API](schema.md)** - JSON Schema validation
+  - Schema definition and validation
+  - Type coercion and custom validators
+  - Integration with structured outputs
 
-- **Schema Validation**: Define, validate, and coerce structured outputs against JSON Schema
-- **LLM Provider Integration**: Unified API for OpenAI, Anthropic, and custom providers
-- **Multi-Provider Strategies**: Combine multiple LLM providers with different strategies (fastest, primary, consensus)
-- **Structured Output Processing**: Generate structured, schema-conforming responses from LLMs
-- **Agent System**: Build LLM agents with tools and workflow capabilities
-- **Monitoring Hooks**: Track and measure LLM operations with logging and metrics hooks
-- **Type-Safe API**: Generics-based design for type safety and IDE support
-- **Convenience Utilities**: Helper functions for common LLM operations and patterns
+### Structured Output
+- **[Structured API](structured.md)** - Extract structured data from LLMs
+  - Prompt enhancement with schemas
+  - JSON extraction and validation
+  - Type-safe output processing
 
-## Package Structure
+## Agent Framework
 
-Go-LLMs follows a vertical slicing approach where code is organized by feature:
+### Core Agent System
+- **[Agent API](agent.md)** - Build autonomous agents
+  - Agent lifecycle and state management
+  - Hook system for monitoring
+  - Event-driven architecture
 
-```
-go-llms/
-├── pkg/                       # Public packages
-│   ├── schema/                # Schema definition and validation feature
-│   │   ├── domain/            # Core domain models
-│   │   ├── validation/        # Validation logic
-│   │   └── adapter/           # External adapters (reflection, etc.)
-│   ├── llm/                   # LLM integration feature
-│   │   ├── domain/            # Core LLM domain models
-│   │   └── provider/          # LLM provider implementations
-│   ├── structured/            # Structured output feature
-│   │   ├── domain/            # Structured output domain
-│   │   └── processor/         # Output processors
-│   └── agent/                 # Agent feature (tools, workflows)
-│       ├── domain/            # Agent domain models
-│       ├── tools/             # Tool implementations
-│       └── workflow/          # Agent workflows
-│   └── util/                  # Utility packages
-│       ├── json/              # JSON utilities 
-│       └── llmutil/           # LLM convenience functions
-```
+### Tools and Extensions
+- **[Tools API](tools.md)** - Create and manage agent tools
+  - ToolBuilder pattern for rich metadata
+  - Agent-tool bidirectional conversion
+  - Performance optimizations
 
-## Packages
+- **[Built-in Tools](builtins.md)** - Pre-built tool library
+  - 32 tools across 7 categories
+  - MCP compatibility
+  - Tool discovery and registry
 
-- [schema](schema.md) - Schema definition and validation
-- [llm](llm.md) - LLM provider integration
-- [structured](structured.md) - Structured output processing
-- [agent](agent.md) - Agent and tool functionality
+### Workflows
+- **[Workflow API](workflows.md)** - Compose complex agent behaviors
+  - Sequential, parallel, conditional, and loop patterns
+  - Error handling and recovery
+  - State management across steps
 
-## Getting Started
+## Utilities
 
-For most applications, you'll need to use multiple packages together. Here's a typical usage flow:
+### General Utilities
+- **[Utils API](utils.md)** - Helper packages
+  - Authentication (OAuth2, API keys)
+  - High-performance JSON operations
+  - LLM convenience functions
+  - Metrics and profiling
 
-1. Define a schema for the structured output you want to receive
-2. Create an LLM provider (e.g., OpenAI, Anthropic)
-3. Use the structured output processor to generate and validate responses
-4. Optionally, use the agent system to add tools and workflow capabilities
+### Testing
+- **[Test Utilities](testutils.md)** - Testing support
+  - Mock providers and tools
+  - Test data helpers
+  - Deterministic testing patterns
 
-## Basic Usage
+## Quick Start
 
+### Basic LLM Usage
 ```go
-package main
+import "github.com/lexlapax/go-llms/pkg/llm/provider"
 
+// Create provider
+provider := provider.NewOpenAIProvider("api-key", "gpt-4o")
+
+// Generate text
+response, err := provider.Generate(ctx, "Hello, world!")
+```
+
+### Structured Output
+```go
+import "github.com/lexlapax/go-llms/pkg/structured/processor"
+
+// Define structure
+type Result struct {
+    Name  string `json:"name"`
+    Score int    `json:"score"`
+}
+
+// Generate structured data
+var result Result
+err := provider.GenerateWithSchema(ctx, prompt, &result)
+```
+
+### Agent with Tools
+```go
 import (
-    "context"
-    "fmt"
-    
-    "github.com/lexlapax/go-llms/pkg/llm/provider"
-    "github.com/lexlapax/go-llms/pkg/schema/domain"
-    "github.com/lexlapax/go-llms/pkg/structured/processor"
+    "github.com/lexlapax/go-llms/pkg/agent/core"
+    "github.com/lexlapax/go-llms/pkg/agent/builtins/tools"
 )
 
-func main() {
-    // Create an LLM provider
-    llmProvider := provider.NewOpenAIProvider(
-        "your-api-key",
-        "gpt-4o",
-    )
-    
-    // Define a schema for structured output
-    schema := &domain.Schema{
-        Type: "object",
-        Properties: map[string]domain.Property{
-            "name": {Type: "string"},
-            "age": {Type: "integer", Minimum: float64Ptr(0)},
-            "email": {Type: "string", Format: "email"},
-        },
-        Required: []string{"name", "email"},
-    }
-    
-    // Create a prompt
-    prompt := "Generate a profile for a fictional person."
-    
-    // Enhance the prompt with schema information
-    enhancedPrompt, err := processor.EnhancePromptWithSchema(prompt, schema)
-    if err != nil {
-        fmt.Printf("Error: %v\n", err)
-        return
-    }
-    
-    // Generate a response
-    response, err := llmProvider.Generate(context.Background(), enhancedPrompt)
-    if err != nil {
-        fmt.Printf("Error: %v\n", err)
-        return
-    }
-    
-    // Process the response
-    proc := processor.NewJsonProcessor()
-    result, err := proc.Process(schema, response)
-    if err != nil {
-        fmt.Printf("Error: %v\n", err)
-        return
-    }
-    
-    // Use the result
-    person := result.(map[string]interface{})
-    fmt.Printf("Name: %s\n", person["name"])
-    fmt.Printf("Age: %v\n", person["age"])
-    fmt.Printf("Email: %s\n", person["email"])
-}
+// Create agent
+agent := core.NewLLMAgent("assistant", provider)
 
-func float64Ptr(v float64) *float64 {
-    return &v
-}
+// Add built-in tools
+calculator, _ := tools.GetTool("calculator")
+webSearch, _ := tools.GetTool("web_search")
+
+agent.AddTool(calculator)
+agent.AddTool(webSearch)
+
+// Run agent
+state := domain.NewState().Set("input", "Search for Python tutorials and calculate 15% of 200")
+result, err := agent.Run(ctx, state)
 ```
 
-## Examples
+## Package Organization
 
-Check each package's documentation for detailed examples and guides:
+```
+pkg/
+├── llm/           # LLM providers and interfaces
+├── schema/        # JSON Schema validation
+├── structured/    # Structured output processing
+├── agent/         # Agent framework
+│   ├── core/      # Core agent implementation
+│   ├── domain/    # Agent interfaces and types
+│   ├── tools/     # Tool system
+│   ├── builtins/  # Built-in components
+│   └── workflow/  # Workflow patterns
+├── util/          # Utility packages
+│   ├── auth/      # Authentication
+│   ├── json/      # JSON operations
+│   ├── llmutil/   # LLM helpers
+│   ├── metrics/   # Performance metrics
+│   └── profiling/ # Profiling tools
+└── testutils/     # Testing utilities
+```
 
-- [schema](schema.md) - Schema definition and validation
-- [llm](llm.md) - LLM provider integration
-- [structured](structured.md) - Structured output processing
-- [agent](agent.md) - Agent and tool functionality
+## Integration Patterns
 
-For more examples, see the [examples directory](/cmd/examples/) in the project repository.
+The packages are designed to work together:
+
+1. **Schema + LLM** → Structured generation
+2. **Agent + Tools** → Autonomous task execution
+3. **Workflow + Agent** → Complex multi-step processes
+4. **Utils + Any** → Enhanced functionality
+
+## Next Steps
+
+- Browse individual API references for detailed documentation
+- Check the [User Guide](../user-guide/) for practical examples
+- See [Technical Docs](../technical/) for implementation details
+- Explore [Examples](../../cmd/examples/) for working code
+
+## Version Information
+
+Current version: v0.3.1
+
+All APIs are subject to change until v1.0. See [CHANGELOG](../../CHANGELOG.md) for version history.

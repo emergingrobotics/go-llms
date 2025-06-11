@@ -1,241 +1,310 @@
-# Agent Package
+# Agent API Reference
 
-The `agent` package provides functionality for building LLM-powered agents that can use tools to interact with external systems. It includes support for tool definition, agent workflows, and monitoring hooks.
+The agent package (`pkg/agent`) provides the core functionality for building LLM-powered agents that can use tools, manage state, and execute complex workflows. This document focuses on core agent concepts, with detailed tool and workflow documentation available separately.
+
+## Overview
+
+Agents in go-llms are autonomous entities that:
+- Process inputs using LLM providers
+- Execute tools to interact with external systems
+- Manage conversation state and context
+- Support hooks for monitoring and customization
+- Can be composed into complex workflows
 
 ## Core Components
 
-### Domain
+### BaseAgent Interface
 
-#### Tool Interface
+The foundation of all agents in the system.
 
 ```go
-type Tool interface {
-    // Name returns the tool's name
+type BaseAgent interface {
+    // Name returns the agent's identifier
     Name() string
     
-    // Description provides information about the tool
+    // Description returns the agent's purpose
     Description() string
     
-    // Execute runs the tool with parameters
-    Execute(ctx context.Context, params map[string]interface{}) (interface{}, error)
+    // Run executes the agent with the given state
+    Run(ctx context.Context, state State) (State, error)
     
-    // ParameterSchema returns the schema for the tool parameters
-    ParameterSchema() interface{}
+    // RunAsync executes asynchronously with event streaming
+    RunAsync(ctx context.Context, state State) <-chan Event
+    
+    // Validate checks if the agent is properly configured
+    Validate() error
 }
 ```
 
-The `Tool` interface defines methods for tools that agents can invoke, with support for parameter validation and execution.
+### LLMAgent
 
-#### Hook Interface
+The primary agent implementation that integrates with LLM providers.
+
+```go
+import "github.com/lexlapax/go-llms/pkg/agent/core"
+
+// Create an LLM agent
+agent := core.NewLLMAgent("assistant", provider)
+
+// Configure the agent
+agent.SetSystemPrompt("You are a helpful assistant with access to tools.")
+agent.SetMaxIterations(5)  // Limit tool call iterations
+agent.AddTool(searchTool)
+agent.AddTool(calculatorTool)
+
+// Run the agent
+state := domain.NewState().Set("input", "What's the weather in NYC?")
+result, err := agent.Run(ctx, state)
+```
+
+### State Management
+
+State represents the agent's working memory and context.
+
+```go
+// Create state
+state := domain.NewState()
+
+// Set values
+state.Set("user_input", "Hello")
+state.Set("context", contextData)
+state.Set("max_tokens", 1000)
+
+// Get values
+input, exists := state.Get("user_input")
+if !exists {
+    // Handle missing value
+}
+
+// Clone state for isolation
+newState := state.Clone()
+
+// Merge states
+state.Merge(otherState)
+```
+
+### Event System
+
+Agents emit events during execution for monitoring and debugging.
+
+```go
+// Run agent asynchronously to receive events
+eventStream := agent.RunAsync(ctx, state)
+
+for event := range eventStream {
+    switch e := event.(type) {
+    case *domain.ProgressEvent:
+        fmt.Printf("Progress: %s - %d/%d\n", e.Message, e.Current, e.Total)
+        
+    case *domain.ToolCallEvent:
+        fmt.Printf("Tool called: %s with args %v\n", e.Tool, e.Arguments)
+        
+    case *domain.CompletionEvent:
+        fmt.Printf("Agent completed: %v\n", e.Result)
+        
+    case *domain.ErrorEvent:
+        fmt.Printf("Error: %v\n", e.Error)
+    }
+}
+```
+
+## Hooks
+
+Hooks provide lifecycle callbacks for agent operations.
+
+### Hook Interface
 
 ```go
 type Hook interface {
-    // BeforeGenerate is called before generating a response
-    BeforeGenerate(ctx context.Context, messages []domain.Message)
+    // Called before LLM generation
+    BeforeGenerate(ctx context.Context, state State) error
     
-    // AfterGenerate is called after generating a response
-    AfterGenerate(ctx context.Context, response domain.Response, err error)
+    // Called after LLM generation
+    AfterGenerate(ctx context.Context, state State, response *Message, err error) error
     
-    // BeforeToolCall is called before executing a tool
-    BeforeToolCall(ctx context.Context, tool string, params map[string]interface{})
+    // Called before tool execution
+    BeforeToolCall(ctx context.Context, tool string, args map[string]interface{}) error
     
-    // AfterToolCall is called after executing a tool
-    AfterToolCall(ctx context.Context, tool string, result interface{}, err error)
+    // Called after tool execution
+    AfterToolCall(ctx context.Context, tool string, result interface{}, err error) error
 }
 ```
 
-The `Hook` interface provides callbacks for monitoring agent operations, such as generation and tool execution.
-
-#### RunContext
-
-```go
-type RunContext[D any] struct {
-    ctx  context.Context
-    deps D
-}
-
-// NewRunContext creates a new run context
-func NewRunContext[D any](ctx context.Context, deps D) *RunContext[D]
-
-// Deps returns the dependencies
-func (r *RunContext[D]) Deps() D
-
-// Context returns the context
-func (r *RunContext[D]) Context() context.Context
-```
-
-The `RunContext` provides a way to carry dependencies through the agent execution flow, with generic support for different dependency types.
-
-## Tools Package
-
-The tools package provides base implementations and utilities for creating and registering tools.
-
-### BaseTool
-
-```go
-// Create a new tool
-tool := tools.NewTool(
-    "weather",
-    "Get the weather for a location",
-    func(ctx context.Context, params map[string]interface{}) (interface{}, error) {
-        location, _ := params["location"].(string)
-        // Implementation...
-        return map[string]interface{}{
-            "temperature": 72.5,
-            "condition": "Sunny",
-            "location": location,
-        }, nil
-    },
-)
-```
-
-The `BaseTool` provides a foundation for tool implementations with support for parameter validation and execution.
-
-### Parameter Schemas
-
-```go
-// Define a parameter schema
-paramSchema := &schemaDomain.Schema{
-    Type: "object",
-    Properties: map[string]schemaDomain.Property{
-        "location": {
-            Type:        "string",
-            Description: "The location to get weather for",
-        },
-    },
-    Required: []string{"location"},
-}
-
-// Create a tool with a parameter schema
-tool := tools.NewToolWithSchema(
-    "weather",
-    "Get the weather for a location",
-    paramSchema,
-    func(ctx context.Context, params map[string]interface{}) (interface{}, error) {
-        // Implementation...
-    },
-)
-```
-
-Tools can define parameter schemas to validate inputs before execution.
-
-## Workflow Package
-
-The workflow package provides agent implementations and execution flows.
-
-### Agent
-
-```go
-// Create an agent
-func NewAgent[D any, O any](provider domain.Provider) *Agent[D, O]
-
-// Run the agent
-func (a *Agent[D, O]) Run(ctx context.Context, input string, deps D) (O, error)
-
-// Run with schema
-func (a *Agent[D, O]) RunWithSchema(ctx context.Context, input string, schema *schemaDomain.Schema, deps D) (O, error)
-```
-
-The `Agent` type provides the main functionality for running LLM agents, with support for dependencies and structured outputs.
-
-### Configuration
-
-```go
-// Add a tool to the agent
-func (a *Agent[D, O]) AddTool(tool domain.Tool) *Agent[D, O]
-
-// Set the system prompt
-func (a *Agent[D, O]) SetSystemPrompt(prompt string) *Agent[D, O]
-
-// Add a hook
-func (a *Agent[D, O]) AddHook(hook domain.Hook) *Agent[D, O]
-```
-
-Agents can be configured with tools, system prompts, and hooks.
-
-### Hooks Implementation
+### Built-in Hooks
 
 #### LoggingHook
 
 ```go
-// Create a logging hook
-hook := workflow.NewLoggingHook(slog.Default(), workflow.LogLevelDetailed)
+// Create logging hook
+loggingHook := core.NewLoggingHook(slog.Default())
 
-// Log levels
-const (
-    // LogLevelBasic logs basic information
-    LogLevelBasic
-    // LogLevelDetailed logs detailed information including message content
-    LogLevelDetailed
-    // LogLevelDebug logs everything including full message content and tool data
-    LogLevelDebug
-)
+// Configure log level
+loggingHook.SetLevel(core.LogLevelDetailed)
+
+// Add to agent
+agent.AddHook(loggingHook)
 ```
 
-The `LoggingHook` provides optional logging for agent operations, with configurable detail levels. This hook is not included by default - you must explicitly add it to your agent if you want logging functionality.
+Log levels:
+- `LogLevelBasic`: Basic operation info
+- `LogLevelDetailed`: Include message content
+- `LogLevelDebug`: Full details including tool data
 
 #### MetricsHook
 
 ```go
-// Create a metrics hook
-hook := workflow.NewMetricsHook()
+// Create metrics hook
+metricsHook := core.NewMetricsHook()
+agent.AddHook(metricsHook)
 
-// Get metrics
-metrics := hook.GetMetrics()
+// Run agent...
 
-// Reset metrics
-hook.Reset()
+// Get collected metrics
+metrics := metricsHook.GetMetrics()
+fmt.Printf("Total requests: %d\n", metrics.Requests)
+fmt.Printf("Tool calls: %d\n", metrics.ToolCalls)
+fmt.Printf("Avg response time: %.2fms\n", metrics.AverageGenTimeMs)
 ```
 
-The `MetricsHook` collects performance metrics for agent operations, such as request counts, tool calls, and response times.
-
-### Tool Executor
+### Custom Hooks
 
 ```go
-// The ToolExecutor is used internally by the agent
-// You generally don't need to interact with it directly
-executor := workflow.NewToolExecutor(tools)
+type CustomHook struct{}
+
+func (h *CustomHook) BeforeGenerate(ctx context.Context, state domain.State) error {
+    // Custom logic before generation
+    fmt.Println("Generating response...")
+    return nil
+}
+
+func (h *CustomHook) AfterGenerate(ctx context.Context, state domain.State, response *domain.Message, err error) error {
+    if err != nil {
+        // Handle error
+        return err
+    }
+    // Process response
+    return nil
+}
+
+// Implement other methods...
+
+agent.AddHook(&CustomHook{})
 ```
 
-The `ToolExecutor` handles tool execution and parameter validation.
+## Agent Configuration
 
-### Message Manager
+### System Prompts
 
 ```go
-// The StateManager is used internally by the agent
-// You generally don't need to interact with it directly
-stateManager := core.NewStateManager()
+agent.SetSystemPrompt(`You are an expert assistant with the following capabilities:
+- Access to web search for current information
+- Mathematical calculations
+- Data analysis
+
+Always cite your sources when using tools.`)
 ```
 
-The `MessageManager` manages the conversation history for the agent.
-
-## Additional Components
-
-### MultiAgent
+### Tool Management
 
 ```go
-// Create a multi-agent using workflow agents
-multiAgent := core.NewParallelAgent("multi-agent", "Parallel multi-agent processor")
-multiAgent.AddAgent(agent1)
-multiAgent.AddAgent(agent2)
+// Add individual tools
+agent.AddTool(webSearchTool)
+agent.AddTool(calculatorTool)
+
+// Add multiple tools
+agent.AddTools(tool1, tool2, tool3)
+
+// Remove a tool
+agent.RemoveTool("tool-name")
+
+// Get registered tools
+tools := agent.GetTools()
 ```
 
-The `MultiAgent` allows using multiple agents together, similar to the multi-provider approach.
+For detailed tool creation and management, see [Tools API Reference](tools.md).
 
-### CachedAgent
+### Iteration Control
 
 ```go
-// Create an agent with caching hooks
-agent.WithHook(&CachingHook{
-    cache: make(map[string]interface{}),
+// Limit the number of LLM/tool iterations
+agent.SetMaxIterations(10)
+
+// Set timeout for agent execution
+ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+defer cancel()
+result, err := agent.Run(ctx, state)
+```
+
+## Advanced Features
+
+### Sub-Agents
+
+Agents can invoke other agents as tools.
+
+```go
+// Create a research sub-agent
+researchAgent := core.NewLLMAgent("researcher", provider)
+researchAgent.AddTool(webSearchTool)
+researchAgent.SetSystemPrompt("You are a research specialist.")
+
+// Wrap as tool for main agent
+researchTool := tools.NewAgentTool(researchAgent)
+
+// Add to main agent
+mainAgent.AddTool(researchTool)
+```
+
+### State Validators
+
+Ensure state meets requirements before and after execution.
+
+```go
+// Create validator
+validator := &domain.StateValidator{
+    RequiredFields: []string{"user_input", "context"},
+    FieldValidators: map[string]func(interface{}) error{
+        "max_tokens": func(v interface{}) error {
+            if tokens, ok := v.(int); ok && tokens > 0 && tokens <= 4000 {
+                return nil
+            }
+            return fmt.Errorf("max_tokens must be between 1 and 4000")
+        },
+    },
+}
+
+agent.SetStateValidator(validator)
+```
+
+### Error Handling
+
+```go
+// Configure retry behavior
+agent.SetRetryConfig(domain.RetryConfig{
+    MaxRetries: 3,
+    RetryDelay: time.Second,
+    RetryableErrors: []string{
+        "rate_limit",
+        "timeout",
+    },
 })
+
+// Handle errors in execution
+result, err := agent.Run(ctx, state)
+if err != nil {
+    var agentErr *domain.AgentError
+    if errors.As(err, &agentErr) {
+        fmt.Printf("Agent error: %s (type: %s)\n", 
+            agentErr.Message, agentErr.Type)
+        
+        // Check if retryable
+        if agentErr.Retryable {
+            // Implement retry logic
+        }
+    }
+}
 ```
 
-The `CachedAgent` provides caching for agent responses to improve performance.
-
-## Example Usage
-
-### Basic Agent with Tools
+## Example: Complete Agent
 
 ```go
 package main
@@ -247,216 +316,80 @@ import (
     
     "github.com/lexlapax/go-llms/pkg/agent/core"
     "github.com/lexlapax/go-llms/pkg/agent/domain"
-    "github.com/lexlapax/go-llms/pkg/agent/tools"
+    "github.com/lexlapax/go-llms/pkg/agent/builtins/tools"
     "github.com/lexlapax/go-llms/pkg/llm/provider"
 )
 
-// Define dependencies
-type ExampleDeps struct {
-    APIClient *APIClient
-}
-
-// Mock API client
-type APIClient struct{}
-
-func (c *APIClient) GetData(query string) (string, error) {
-    return fmt.Sprintf("Data for query: %s", query), nil
-}
-
 func main() {
-    // Create a provider
-    llmProvider := provider.NewOpenAIProvider("your-api-key", "gpt-4o")
+    // Create provider
+    llmProvider := provider.NewOpenAIProvider("api-key", 
+        provider.WithModel("gpt-4"),
+        provider.WithTemperature(0.7),
+    )
     
-    // Create an agent
-    deps := core.LLMDeps{
-        Provider: llmProvider,
-    }
-    agent := core.NewLLMAgent("example-agent", "gpt-4o", deps)
-    agent.SetSystemPrompt("You are a helpful assistant with access to tools.")
+    // Create agent
+    agent := core.NewLLMAgent("assistant", llmProvider)
     
-    // Add a search tool
-    agent.AddTool(tools.NewTool(
-        "search",
-        "Search for information",
-        func(ctx context.Context, params map[string]interface{}) (interface{}, error) {
-            query, _ := params["query"].(string)
-            
-            // Get dependencies from context
-            runCtx := ctx.Value("runContext").(*domain.RunContext[ExampleDeps])
-            apiClient := runCtx.Deps().APIClient
-            
-            // Use the API client to get data
-            result, err := apiClient.GetData(query)
-            if err != nil {
-                return nil, err
-            }
-            
-            return result, nil
-        },
-    ))
+    // Configure agent
+    agent.SetSystemPrompt(`You are a helpful assistant that can:
+    1. Search the web for information
+    2. Perform calculations
+    3. Analyze data
     
-    // Add a logging hook
-    agent.WithHook(&core.LoggingHook{
-        Logger: slog.Default(),
-        Level:  core.LogLevelDetailed,
-    })
+    Always explain your reasoning and cite sources.`)
     
-    // Create state with dependencies
+    // Add built-in tools
+    webSearch, _ := tools.GetTool("web_search")
+    calculator, _ := tools.GetTool("calculator")
+    
+    agent.AddTool(webSearch)
+    agent.AddTool(calculator)
+    
+    // Add hooks
+    agent.AddHook(core.NewLoggingHook(slog.Default()))
+    agent.AddHook(core.NewMetricsHook())
+    
+    // Set limits
+    agent.SetMaxIterations(5)
+    
+    // Create initial state
     state := domain.NewState()
-    state.Set("user_input", "What can you tell me about Go programming?")
-    state.Set("deps", ExampleDeps{
-        APIClient: &APIClient{},
-    })
+    state.Set("input", "What's the population of Tokyo and how does it compare to New York?")
     
-    // Run the agent
-    resultState, err := agent.Run(context.Background(), state)
+    // Run agent
+    ctx := context.Background()
+    result, err := agent.Run(ctx, state)
     if err != nil {
         fmt.Printf("Error: %v\n", err)
         return
     }
     
-    output, _ := resultState.Get("output")
-    fmt.Printf("Result: %s\n", output)
+    // Get output
+    output, _ := result.Get("output")
+    fmt.Printf("Response: %s\n", output)
 }
 ```
 
-### Agent with Structured Output
+## Integration with Workflows
 
-```go
-package main
+Agents can be composed into workflows for complex tasks. See [Workflow API Reference](workflows.md) for details on:
+- Sequential workflows
+- Parallel execution
+- Conditional branching
+- Loop patterns
 
-import (
-    "context"
-    "fmt"
-    
-    "github.com/lexlapax/go-llms/pkg/agent/core"
-    "github.com/lexlapax/go-llms/pkg/agent/domain"
-    "github.com/lexlapax/go-llms/pkg/llm/provider"
-    schemaDomain "github.com/lexlapax/go-llms/pkg/schema/domain"
-)
+## Best Practices
 
-// Define a structured output type
-type RecipeOutput struct {
-    Title       string   `json:"title"`
-    Ingredients []string `json:"ingredients"`
-    Steps       []string `json:"steps"`
-    PrepTime    int      `json:"prep_time"`
-}
+1. **State Management**: Keep state minimal and well-structured
+2. **Tool Selection**: Only add tools the agent actually needs
+3. **Error Handling**: Always handle errors appropriately
+4. **Monitoring**: Use hooks for observability in production
+5. **Testing**: Use mock providers and tools for unit tests (see [Test Utilities](testutils.md))
 
-func main() {
-    // Create a provider
-    llmProvider := provider.NewOpenAIProvider("your-api-key", "gpt-4o")
-    
-    // Create an agent with structured output
-    deps := core.LLMDeps{
-        Provider: llmProvider,
-    }
-    agent := core.NewLLMAgent("recipe-agent", "gpt-4o", deps)
-    agent.SetSystemPrompt("You are a helpful cooking assistant.")
-    
-    // Define output schema
-    schema := &schemaDomain.Schema{
-        Type: "object",
-        Properties: map[string]schemaDomain.Property{
-            "title": {Type: "string", Description: "The recipe title"},
-            "ingredients": {
-                Type: "array",
-                Items: &schemaDomain.Property{Type: "string"},
-                Description: "List of ingredients",
-            },
-            "steps": {
-                Type: "array",
-                Items: &schemaDomain.Property{Type: "string"},
-                Description: "Preparation steps",
-            },
-            "prep_time": {Type: "integer", Description: "Preparation time in minutes"},
-        },
-        Required: []string{"title", "ingredients", "steps"},
-    }
-    
-    // Run the agent with schema
-    state := domain.NewState()
-    state.Set("user_input", "Give me a simple recipe for chocolate chip cookies.")
-    state.Set("output_schema", schema)
-    
-    resultState, err := agent.Run(context.Background(), state)
-    if err != nil {
-        fmt.Printf("Error: %v\n", err)
-        return
-    }
-    
-    // Extract the structured output
-    output, _ := resultState.Get("output")
-    recipe := output.(RecipeOutput)
-    
-    // Use the structured output
-    fmt.Printf("Recipe: %s\n\n", recipe.Title)
-    
-    fmt.Println("Ingredients:")
-    for _, ingredient := range recipe.Ingredients {
-        fmt.Printf("- %s\n", ingredient)
-    }
-    
-    fmt.Println("\nSteps:")
-    for i, step := range recipe.Steps {
-        fmt.Printf("%d. %s\n", i+1, step)
-    }
-    
-    fmt.Printf("\nPreparation time: %d minutes\n", recipe.PrepTime)
-}
-```
+## See Also
 
-### Agent with Metrics
-
-```go
-package main
-
-import (
-    "context"
-    "fmt"
-    
-    "github.com/lexlapax/go-llms/pkg/agent/core"
-    "github.com/lexlapax/go-llms/pkg/agent/domain"
-    "github.com/lexlapax/go-llms/pkg/llm/provider"
-)
-
-func main() {
-    // Create a provider
-    llmProvider := provider.NewOpenAIProvider("your-api-key", "gpt-4o")
-    
-    // Create an agent
-    deps := core.LLMDeps{
-        Provider: llmProvider,
-    }
-    agent := core.NewLLMAgent("metrics-agent", "gpt-4o", deps)
-    agent.SetSystemPrompt("You are a helpful assistant.")
-    
-    // Add a metrics hook
-    metricsHook := &core.MetricsHook{}
-    agent.WithHook(metricsHook)
-    
-    // Create state
-    state := domain.NewState()
-    state.Set("user_input", "What is the capital of France?")
-    
-    // Run the agent
-    resultState, err := agent.Run(context.Background(), state)
-    if err != nil {
-        fmt.Printf("Error: %v\n", err)
-        return
-    }
-    
-    output, _ := resultState.Get("output")
-    fmt.Printf("Result: %s\n\n", output)
-    
-    // Get metrics
-    metrics := metricsHook.GetMetrics()
-    
-    fmt.Println("Metrics:")
-    fmt.Printf("Requests: %d\n", metrics.Requests)
-    fmt.Printf("Tool calls: %d\n", metrics.ToolCalls)
-    fmt.Printf("Errors: %d\n", metrics.ErrorCount)
-    fmt.Printf("Total tokens: %d\n", metrics.TotalTokens)
-    fmt.Printf("Average generation time: %.2fms\n", metrics.AverageGenTimeMs)
-}
-```
+- [Tools API Reference](tools.md) - Creating and managing tools
+- [Workflow API Reference](workflows.md) - Composing agents into workflows
+- [Built-in Components](builtins.md) - Pre-built tools and agents
+- [LLM API Reference](llm.md) - Provider integration
+- [User Guide: Custom Agents](../user-guide/custom-agents.md) - Practical agent examples
