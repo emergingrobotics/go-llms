@@ -6,9 +6,9 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 Go-LLMs is a Go library providing a unified interface for various LLM providers (OpenAI, Anthropic, Google Gemini, etc.) with robust data validation and agent tooling.
 
-**Version**: v0.3.1 (Active Development - January 2025)
+**Version**: v0.3.1 (Release Ready - January 2025)
 
-**Status**: Tool System Enhancement complete, ready for v0.3.1 release. All 32 tools migrated to ToolBuilder pattern with MCP compatibility.
+**Status**: All 32 tools migrated to ToolBuilder pattern with MCP compatibility. Ready for release tag.
 
 ## Key Commands
 
