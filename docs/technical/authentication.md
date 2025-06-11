@@ -1,5 +1,7 @@
 # Authentication System
 
+> **[Documentation Home](/docs/README.md) / [Technical Documentation](/docs/technical/README.md) / Authentication**
+
 This document describes the authentication system in go-llms, particularly how it integrates with the API Client tool and web tools.
 
 ## Overview

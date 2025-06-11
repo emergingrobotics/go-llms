@@ -1,6 +1,6 @@
 # Caching Mechanisms in Go-LLMs
 
-> **[Documentation Home](/REFERENCE.md) / [Technical Documentation](/docs/technical/) / Caching Mechanisms**
+> **[Documentation Home](/docs/README.md) / [Technical Documentation](/docs/technical/README.md) / Caching Mechanisms**
 
 This document explains the various caching mechanisms implemented in Go-LLMs to improve performance, reduce redundant operations, and minimize latency. It covers design patterns, implementation details, and best practices for effective caching.
 

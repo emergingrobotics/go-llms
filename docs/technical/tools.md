@@ -1,26 +1,27 @@
 # Tools and Agent-Tool Integration
 
-This document describes the tool system in go-llms, including the enhanced Tool interface, the ToolBuilder pattern, and the bidirectional agent-tool integration system.
+This document describes the comprehensive tool system in go-llms, including the enhanced Tool interface with ToolContext, the ToolBuilder pattern, bidirectional agent-tool integration, and the complete set of built-in tools.
 
 ## Table of Contents
 
-- [Tool Interface](#tool-interface)
+- [Tool Interface and ToolContext](#tool-interface-and-toolcontext)
 - [ToolBuilder Pattern](#toolbuilder-pattern)
 - [Built-in Tools](#built-in-tools)
 - [Agent-Tool Integration](#agent-tool-integration)
+- [Tool Context System](#tool-context-system)
 - [Best Practices](#best-practices)
 - [Architecture](#architecture)
 
-## Tool Interface
+## Tool Interface and ToolContext
 
-The enhanced Tool interface provides comprehensive metadata and guidance for LLMs:
+The enhanced Tool interface provides comprehensive metadata and guidance for LLMs, with execution through a rich ToolContext:
 
 ```go
 type Tool interface {
     // Core functionality
     Name() string                                                      // Unique identifier
     Description() string                                               // Brief description
-    Execute(ctx *ToolContext, params interface{}) (interface{}, error) // Execute the tool
+    Execute(ctx *ToolContext, params interface{}) (interface{}, error) // Execute with rich context
 
     // Schema definitions
     ParameterSchema() *domain.Schema // JSON Schema for input parameters
@@ -47,6 +48,38 @@ type Tool interface {
     ToMCPDefinition() MCPToolDefinition // Export tool definition in MCP format
 }
 ```
+
+### ToolContext
+
+The `ToolContext` provides tools with rich execution context including access to agent state, event emission, and execution metadata:
+
+```go
+type ToolContext struct {
+    // Standard Go context for cancellation and deadlines
+    Context context.Context
+    
+    // Read-only access to agent state
+    State StateReader
+    
+    // Execution metadata
+    RunID     string        // Unique execution identifier
+    Retry     int           // Current retry attempt
+    StartTime time.Time     // When execution started
+    
+    // Event emission capability
+    Events EventEmitter     // Emit progress and custom events
+    
+    // Information about the calling agent
+    Agent AgentInfo         // Agent metadata and hierarchy info
+}
+```
+
+**Key ToolContext capabilities:**
+- **State Access**: Read agent state for configuration and context
+- **Event Emission**: Send progress, errors, and custom events
+- **Agent Information**: Access agent metadata and hierarchy
+- **Execution Tracking**: Retry counts, run IDs, and timing
+- **Context Integration**: Full Go context.Context compatibility
 
 ## ToolBuilder Pattern
 
@@ -83,10 +116,10 @@ tool := NewToolBuilder("calculator", "Performs arithmetic operations").
 
 ### Function Wrapping
 
-The ToolBuilder can wrap various function signatures:
+The ToolBuilder can wrap various function signatures, with ToolContext being the recommended approach:
 
 ```go
-// Function with struct parameter (recommended)
+// Function with struct parameter (basic)
 type CalcParams struct {
     Operation string  `json:"operation"`
     A         float64 `json:"a"`
@@ -94,11 +127,26 @@ type CalcParams struct {
 }
 func calcFn(params CalcParams) (float64, error) { ... }
 
-// Function with context
+// Function with standard context
 func contextFn(ctx context.Context, params CalcParams) (float64, error) { ... }
 
-// Function with ToolContext
-func toolContextFn(ctx *domain.ToolContext, params CalcParams) (float64, error) { ... }
+// Function with ToolContext (recommended)
+func toolContextFn(ctx *domain.ToolContext, params CalcParams) (float64, error) {
+    // Access agent state
+    if apiKey, ok := ctx.State.Get("api_key"); ok {
+        // Use configuration from state
+    }
+    
+    // Emit progress events
+    ctx.Events.EmitProgress(50, 100, "Processing calculation")
+    
+    // Access agent information
+    if ctx.Agent.Type == domain.AgentTypeLLM {
+        // Adapt behavior based on calling agent
+    }
+    
+    return result, nil
+}
 ```
 
 ## Built-in Tools
@@ -151,6 +199,214 @@ Go-llms provides a comprehensive set of built-in tools organized by category:
 
 ### Math Tools (`pkg/agent/builtins/tools/math/`)
 - `calculator` - Comprehensive calculator with advanced operations
+
+## Tool Context System
+
+The ToolContext system provides tools with comprehensive access to agent state, event emission, and execution metadata. This enables sophisticated tool behaviors that can adapt to context and provide rich feedback.
+
+### StateReader Interface
+
+Tools receive read-only access to agent state through the StateReader interface:
+
+```go
+type StateReader interface {
+    Get(key string) (interface{}, bool)    // Get a value by key
+    Values() map[string]interface{}        // Get all values
+    GetArtifact(id string) (*Artifact, bool) // Get artifact by ID
+    Artifacts() map[string]*Artifact       // Get all artifacts
+    Messages() []Message                   // Get conversation messages
+    GetMetadata(key string) (interface{}, bool) // Get metadata
+    Has(key string) bool                   // Check if key exists
+    Keys() []string                        // Get all keys
+}
+```
+
+**Common state access patterns:**
+
+```go
+func myTool(ctx *domain.ToolContext, params MyParams) (*MyResult, error) {
+    // Configuration from state
+    if timeout, ok := ctx.State.Get("timeout"); ok {
+        if timeoutInt, ok := timeout.(int); ok {
+            // Use timeout value
+        }
+    }
+    
+    // Authentication credentials
+    if apiKey, ok := ctx.State.Get("api_key"); ok {
+        // Use API key for authentication
+    }
+    
+    // Previous results for context
+    if lastResult, ok := ctx.State.Get("last_result"); ok {
+        // Build on previous results
+    }
+    
+    // Access conversation messages
+    messages := ctx.State.Messages()
+    for _, msg := range messages {
+        // Analyze conversation context
+    }
+    
+    return result, nil
+}
+```
+
+### EventEmitter Interface
+
+Tools can emit events for monitoring, progress tracking, and debugging:
+
+```go
+type EventEmitter interface {
+    Emit(eventType EventType, data interface{})     // Send typed event
+    EmitProgress(current, total int, message string) // Send progress update
+    EmitMessage(message string)                      // Send informational message
+    EmitError(err error)                            // Send error event
+    EmitCustom(eventName string, data interface{})  // Send custom event
+}
+```
+
+**Event emission patterns:**
+
+```go
+func longRunningTool(ctx *domain.ToolContext, params MyParams) (*MyResult, error) {
+    // Emit start event
+    ctx.Events.Emit(domain.EventTypeToolStart, map[string]interface{}{
+        "tool": "long_running_tool",
+        "params": params,
+    })
+    
+    totalSteps := 100
+    for i := 0; i < totalSteps; i++ {
+        // Process step
+        processStep(i)
+        
+        // Emit progress
+        ctx.Events.EmitProgress(i+1, totalSteps, fmt.Sprintf("Processing step %d", i+1))
+        
+        // Check for cancellation
+        if ctx.Context.Err() != nil {
+            ctx.Events.EmitError(ctx.Context.Err())
+            return nil, ctx.Context.Err()
+        }
+    }
+    
+    // Emit completion
+    ctx.Events.Emit(domain.EventTypeToolComplete, result)
+    return result, nil
+}
+```
+
+### AgentInfo Access
+
+Tools can access information about the calling agent for context-aware behavior:
+
+```go
+type AgentInfo struct {
+    ID          string                     // Agent unique identifier
+    Name        string                     // Agent name
+    Description string                     // Agent description
+    Type        AgentType                  // Agent type (LLM, Workflow, Custom)
+    ParentID    string                     // Parent agent ID (if sub-agent)
+    ParentName  string                     // Parent agent name
+    Depth       int                        // Depth in agent hierarchy
+    Metadata    map[string]interface{}     // Additional agent metadata
+}
+```
+
+**Agent-aware tool behavior:**
+
+```go
+func adaptiveTool(ctx *domain.ToolContext, params MyParams) (*MyResult, error) {
+    // Adapt based on agent type
+    switch ctx.Agent.Type {
+    case domain.AgentTypeLLM:
+        // Provide more detailed output for LLM agents
+        result.Explanation = "Detailed explanation for LLM processing"
+    case domain.AgentTypeWorkflow:
+        // Provide structured output for workflow agents
+        result.StructuredData = generateStructuredOutput(params)
+    }
+    
+    // Check agent hierarchy
+    if ctx.Agent.Depth > 0 {
+        // This is a sub-agent call, adjust behavior
+        result.Context = fmt.Sprintf("Called by sub-agent %s", ctx.Agent.Name)
+    }
+    
+    // Access agent metadata
+    if priority, ok := ctx.Agent.Metadata["priority"]; ok {
+        if priorityStr, ok := priority.(string); ok && priorityStr == "high" {
+            // Use expedited processing for high-priority agents
+        }
+    }
+    
+    return result, nil
+}
+```
+
+### Execution Metadata
+
+Tools have access to execution context including retry information and timing:
+
+```go
+func robustTool(ctx *domain.ToolContext, params MyParams) (*MyResult, error) {
+    // Check retry count
+    if ctx.Retry > 0 {
+        ctx.Events.EmitMessage(fmt.Sprintf("Retry attempt %d", ctx.Retry))
+        
+        // Adjust behavior for retries
+        if ctx.Retry > 2 {
+            // Use more conservative approach after multiple retries
+            params.Timeout *= 2
+        }
+    }
+    
+    // Check execution time
+    if ctx.ElapsedTime() > time.Minute {
+        ctx.Events.EmitMessage("Long-running execution detected")
+    }
+    
+    // Use unique run ID for correlation
+    ctx.Events.EmitCustom("processing_started", map[string]interface{}{
+        "run_id": ctx.RunID,
+        "retry": ctx.Retry,
+        "start_time": ctx.StartTime,
+    })
+    
+    return result, nil
+}
+```
+
+### Context Integration
+
+ToolContext implements the standard Go context.Context interface:
+
+```go
+func contextAwareTool(ctx *domain.ToolContext, params MyParams) (*MyResult, error) {
+    // Use as standard Go context
+    select {
+    case <-ctx.Done():
+        return nil, ctx.Err() // Handle cancellation
+    case result := <-processWithTimeout(ctx.Context, params):
+        return result, nil
+    }
+}
+
+func processWithTimeout(ctx context.Context, params MyParams) <-chan *MyResult {
+    resultChan := make(chan *MyResult, 1)
+    go func() {
+        // Long-running process with context cancellation
+        select {
+        case <-ctx.Done():
+            return
+        case <-time.After(time.Second):
+            resultChan <- &MyResult{Success: true}
+        }
+    }()
+    return resultChan
+}
+```
 
 ## Agent-Tool Integration
 
@@ -469,96 +725,196 @@ All methods return the builder for chaining, and `Build()` creates the final too
 
 ## Enhanced Features
 
-### State Integration
+### Comprehensive ToolContext Integration
 
-Tools can access agent state through the ToolContext:
+All tools in go-llms use the ToolContext system for rich execution context:
 
+**State-Based Configuration:**
 ```go
-func myToolExecute(ctx *domain.ToolContext, params MyParams) (*MyResult, error) {
-    // Read configuration from state
-    if apiKey, ok := ctx.State.Get("api_key"); ok {
-        // Use API key
+func configuredTool(ctx *domain.ToolContext, params MyParams) (*MyResult, error) {
+    // Access user preferences
+    if theme, ok := ctx.State.Get("ui_theme"); ok {
+        result.Theme = theme.(string)
     }
     
-    // Access previous results
-    if lastResult, ok := ctx.State.Get("last_result"); ok {
-        // Reference previous execution
+    // Get API endpoints from state
+    if endpoint, ok := ctx.State.Get("api_endpoint"); ok {
+        params.Endpoint = endpoint.(string)
     }
     
     return result, nil
 }
 ```
 
-### Event Emission
-
-Tools can emit events for monitoring and debugging:
-
+**Event-Driven Monitoring:**
 ```go
-// Emit start event
-ctx.EmitEvent(domain.EventTypeToolStart, map[string]interface{}{
-    "tool": "my_tool",
-    "params": params,
-})
-
-// Emit progress
-ctx.EmitProgress(50, 100, "Processing halfway complete")
-
-// Emit completion
-ctx.EmitEvent(domain.EventTypeToolComplete, result)
+func monitoredTool(ctx *domain.ToolContext, params MyParams) (*MyResult, error) {
+    // Start event with tool metadata
+    ctx.Events.Emit(domain.EventTypeToolStart, map[string]interface{}{
+        "tool": "monitored_tool",
+        "agent": ctx.Agent.Name,
+        "run_id": ctx.RunID,
+    })
+    
+    // Progress tracking
+    steps := []string{"validate", "process", "format", "return"}
+    for i, step := range steps {
+        ctx.Events.EmitProgress(i+1, len(steps), fmt.Sprintf("Executing: %s", step))
+        executeStep(step, params)
+    }
+    
+    // Custom events for specific metrics
+    ctx.Events.EmitCustom("performance_metric", map[string]interface{}{
+        "execution_time_ms": ctx.ElapsedTime().Milliseconds(),
+        "memory_used_mb": getMemoryUsage(),
+    })
+    
+    return result, nil
+}
 ```
 
-### Authentication Support
+### Advanced Authentication Support
 
-Web tools support multiple authentication methods:
-
-1. **Automatic Detection**: Tools detect credentials from state
-2. **Multiple Methods**: Bearer, API Key, Basic, OAuth2, Custom
-3. **URL Pattern Matching**: Auto-apply credentials based on URLs
-4. **Secure Storage**: Credentials stored in state, not exposed to LLMs
-
-### MCP (Model Context Protocol) Export
-
-All tools can export to MCP format for compatibility:
+Web tools support comprehensive authentication through state-based credential management:
 
 ```go
-mcpDef := tool.ToMCPDefinition()
-// Exports tool with full metadata in MCP-compatible format
+func authenticatedWebTool(ctx *domain.ToolContext, params WebParams) (*WebResult, error) {
+    // Multiple authentication methods detected automatically
+    authConfig := auth.DetectAuthFromState(ctx.State, params.URL)
+    
+    if authConfig != nil {
+        params.Headers = authConfig.Apply(params.Headers)
+        ctx.Events.EmitCustom("auth_applied", map[string]interface{}{
+            "method": authConfig.Type,
+            "url_pattern": authConfig.URLPattern,
+        })
+    }
+    
+    return executeRequest(params)
+}
 ```
 
-### Tool Registry
+**Supported authentication methods:**
+1. **Bearer Token**: `ctx.State.Get("bearer_token")` or provider-specific tokens
+2. **API Key**: Header, query parameter, or cookie-based
+3. **Basic Auth**: Username/password combinations
+4. **OAuth2**: Access tokens with automatic refresh detection
+5. **Custom Headers**: Flexible header-based authentication
+6. **URL Pattern Matching**: Automatic credential selection based on URL patterns
 
-All built-in tools are registered in a global registry:
+### Tool Registry and Discovery
+
+Global registry with comprehensive tool management:
 
 ```go
-// Get a tool by name
-tool, ok := tools.GetTool("calculator")
+// Registration (automatic for built-in tools)
+tools.RegisterTool(myCustomTool)
 
-// List tools by category
+// Discovery by various criteria
+tool, exists := tools.GetTool("calculator")
 mathTools := tools.Tools.ListByCategory("math")
+webTools := tools.Tools.SearchByTags("web", "api")
+recentTools := tools.Tools.ListByVersion(">=2.0.0")
 
-// Search tools
-results := tools.Tools.Search("json")
+// Export capabilities
+allMCPDefs := tools.Tools.ExportAllToMCP()
+toolCatalog := tools.Tools.GenerateCatalog()
 ```
 
-### Tool Context
+### MCP (Model Context Protocol) Compatibility
 
-Tools receive a `ToolContext` containing:
-- `Context`: Standard Go context
-- `State`: Read-only state access
-- `Agent`: Information about the calling agent
-- `RunID`: Unique identifier for the execution
-- `Events`: Optional event emitter for tool events
-
-### MCP (Model Context Protocol) Support
-
-Tools can export their definitions in MCP format:
+Full MCP export with rich metadata:
 
 ```go
-// Export single tool
+// Individual tool export
 mcpDef := tool.ToMCPDefinition()
+// Includes: name, description, input/output schemas, behavioral hints
 
-// Export all tools from registry
-catalog := tools.Tools.ExportAllToMCP()
+// Batch export with filtering
+webToolsMCP := tools.Tools.ExportCategoryToMCP("web")
+allToolsMCP := tools.Tools.ExportAllToMCP()
+
+// MCP definition includes:
+type MCPToolDefinition struct {
+    Name         string                 `json:"name"`
+    Description  string                 `json:"description"`
+    InputSchema  interface{}            `json:"inputSchema,omitempty"`
+    OutputSchema interface{}            `json:"outputSchema,omitempty"`
+    Annotations  map[string]interface{} `json:"annotations,omitempty"`
+}
+```
+
+### Performance and Reliability Features
+
+**Retry-Aware Execution:**
+```go
+func resilientTool(ctx *domain.ToolContext, params MyParams) (*MyResult, error) {
+    if ctx.Retry > 0 {
+        // Exponential backoff for retries
+        backoffMs := int64(math.Pow(2, float64(ctx.Retry)) * 1000)
+        time.Sleep(time.Duration(backoffMs) * time.Millisecond)
+        
+        // More conservative parameters on retry
+        params.Timeout = params.Timeout * 2
+        params.Retries = params.Retries - 1
+    }
+    
+    return executeWithRetryLogic(ctx, params)
+}
+```
+
+**Cancellation Support:**
+```go
+func cancellableTool(ctx *domain.ToolContext, params MyParams) (*MyResult, error) {
+    resultChan := make(chan *MyResult)
+    errorChan := make(chan error)
+    
+    go func() {
+        result, err := longRunningOperation(params)
+        if err != nil {
+            errorChan <- err
+        } else {
+            resultChan <- result
+        }
+    }()
+    
+    select {
+    case <-ctx.Done():
+        ctx.Events.EmitMessage("Tool execution cancelled")
+        return nil, ctx.Err()
+    case result := <-resultChan:
+        return result, nil
+    case err := <-errorChan:
+        ctx.Events.EmitError(err)
+        return nil, err
+    }
+}
+```
+
+### Schema Validation and Type Safety
+
+Built-in parameter validation and type coercion:
+
+```go
+// Parameter schema with validation
+paramSchema := &domain.Schema{
+    Type: "object",
+    Properties: map[string]*domain.Schema{
+        "temperature": {
+            Type:    "number",
+            Minimum: -273.15,  // Absolute zero
+            Maximum: 1000.0,   // Reasonable upper limit
+        },
+        "unit": {
+            Type: "string",
+            Enum: []interface{}{"celsius", "fahrenheit", "kelvin"},
+        },
+    },
+    Required: []string{"temperature"},
+}
+
+// Automatic validation happens before Execute() is called
+// Tools receive validated and coerced parameters
 ```
 
 ## Complete Example

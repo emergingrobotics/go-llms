@@ -1,47 +1,59 @@
-# Archived Documentation
+# Archives
 
-This directory contains archived documentation that has been superseded by consolidated documents.
+> **[Documentation Home](/docs/README.md) / Archives**
 
-## Built-in Components Documentation
+This directory contains historical documentation that provides context about the evolution of the Go-LLMs project. These documents are preserved for reference but may not reflect the current state of the library.
 
-The following documents were consolidated into [docs/technical/built-in-components.md](/docs/technical/built-in-components.md):
+## Contents
 
-- **BUILTIN_MIGRATION_BENEFITS.md** - Benefits comparison between common_tools.go and built-in tools
-- **BUILTIN_COMPONENTS_DESIGN.md** - Original design document for built-in components
-- **BUILTIN_COMPONENTS_IMPLEMENTATION_PLAN.md** - Detailed implementation plan with completion status
-- **FEED_TOOLS_PLAN.md** - Implementation plan for feed processing tools
+### Planning Documents
+Original project planning and design documents:
+- [Design Inspirations](design-inspirations.md) - Key inspirations and initial design decisions
+- [Coding Practices](coding-practices.md) - Original coding standards and guidelines
+- [Implementation Plan](implementation-plan.md) - Initial implementation plan with phases
 
-## Model Discovery Documentation
+### Architecture Evolution
+Documents tracking major architectural changes:
+- [Built-in Components Design](BUILTIN-COMPONENTS-DESIGN.md) - Design for the built-in tools/agents registry (implemented in v0.3.x)
+- [Built-in Components Implementation Plan](BUILTIN-COMPONENTS-IMPLEMENTATION-PLAN.md) - Implementation strategy for built-ins
+- [Built-in Migration Benefits](BUILTIN-MIGRATION-BENEFITS.md) - Benefits analysis of the built-in system
+- [Feed Tools Plan](FEED-TOOLS-PLAN.md) - Planning for RSS/Atom feed processing tools
+- [GraphQL API Client Design](GRAPHQL-API-CLIENT-DESIGN.md) - Design for GraphQL support in API tools
+- [GraphQL Library Analysis](GRAPHQL-LIBRARY-ANALYSIS.md) - Analysis of GraphQL library options
+- [GraphQL Parameter Design](GRAPHQL-PARAMETER-DESIGN.md) - Parameter handling for GraphQL queries
+- [List Models Analysis](LIST-MODELS-ANALYSIS.md) - Analysis of model listing/discovery features
 
-The following document was consolidated into [docs/user-guide/model-discovery.md](/docs/user-guide/model-discovery.md):
+### Migration Guides
+Historical migration guides from earlier phases:
+- [Migration Guide Phase 5](MIGRATION-GUIDE-PHASE5.md) - Multi-agent system enhancement guide (historical - features implemented in v0.3.x)
 
-- **LIST_MODELS_ANALYSIS.md** - Architecture analysis for adding "List Models" capability to Go-LLMs
+### LLM Analysis
+Early analysis documents using different LLMs:
+- [Agent Framework Analysis - Claude](analysis-agent-framework-claude.md) - Claude's analysis of agent patterns
+- [Agent Framework Analysis - Gemini](analysis-agent-framework-gemini.md) - Gemini's analysis of agent patterns
 
-## Agent Framework Analysis Documentation
+## Purpose
 
-The following documents were used in the development of the agent architecture and are now consolidated into [docs/technical/agents.md](/docs/technical/agents.md):
+These archives serve several purposes:
 
-- **analysis-agent-framework-claude.md** - Claude's analysis of agent frameworks and architectural patterns
-- **analysis-agent-framework-gemini.md** - Gemini's comprehensive analysis of agent frameworks, including Google ADK patterns
+1. **Historical Context**: Understanding the evolution of design decisions
+2. **Migration Reference**: Helping users who may be working with older versions
+3. **Design Rationale**: Preserving the reasoning behind major architectural choices
+4. **Future Planning**: Learning from past approaches when planning new features
 
-## API Client Tool Documentation
+## Status
 
-The following documents were used in the development of the API client tool with GraphQL support:
+All documents in this directory are considered **historical** and may contain:
+- Outdated API references
+- Superseded design patterns
+- Completed or abandoned feature plans
+- Old migration guides for versions no longer supported
 
-- **GRAPHQL_API_CLIENT_DESIGN.md** - Overall GraphQL design with LLM-friendly approach
-- **GRAPHQL_LIBRARY_ANALYSIS.md** - Analysis of various Go GraphQL libraries (selected gqlparser/v2)
-- **GRAPHQL_PARAMETER_DESIGN.md** - GraphQL parameter integration strategy for the api_client tool
+For current documentation, please refer to:
+- [User Guide](/docs/user-guide/README.md) - Current user documentation
+- [Technical Documentation](/docs/technical/README.md) - Current technical documentation
+- [API Reference](/docs/api/README.md) - Current API documentation
 
-These documents are preserved for historical reference and to track the evolution of the built-in components system, model discovery features, agent architecture development, and API client tool enhancements.
+## Note on Accuracy
 
-## When to Reference These Documents
-
-- To understand the original design decisions and rationale
-- To track implementation progress and completion status
-- To see detailed examples of specific implementations
-- To understand the migration path from common_tools.go
-
-For current documentation:
-- Built-in components: [docs/technical/built-in-components.md](/docs/technical/built-in-components.md)
-- Agent architecture: [docs/technical/agents.md](/docs/technical/agents.md)
-- Model discovery: [docs/user-guide/model-discovery.md](/docs/user-guide/model-discovery.md)
+These documents are preserved as-is from their original creation date. They have not been updated to reflect current implementation details. Always refer to the main documentation for accurate, up-to-date information.

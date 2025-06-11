@@ -1,5 +1,7 @@
 # Built-in Components Architecture
 
+> **[Documentation Home](/docs/README.md) / [Technical Documentation](README.md) / Built-in Components Architecture**
+
 ## Overview and Design Philosophy
 
 The built-in components system provides a rich set of pre-built tools, agents, and workflows that users can leverage immediately while maintaining the flexibility for custom implementations. This architecture enables discovery, composition, and extension of components through a unified registry system.

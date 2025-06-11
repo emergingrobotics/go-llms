@@ -1,8 +1,8 @@
 # Multimodal Content Implementation
 
-> **[Documentation Home](/REFERENCE.md) / [Technical Documentation](README.md) / Multimodal Content Implementation**
+> **[Documentation Home](/docs/README.md) / [Technical Documentation](README.md) / Multimodal Content Implementation**
 
-This document describes the implementation of multimodal content support in the Go-LLMs library. The implementation enables the library to handle various types of content such as text, images, files, videos, and audio in messages sent to and received from different LLM providers.
+This document describes the technical implementation of multimodal content support in Go-LLMs. It covers the internal architecture, provider-specific adaptations, and extension points for contributors.
 
 ## Core Components
 
@@ -54,37 +54,72 @@ imageMessage := NewImageMessage(domain.RoleUser, imageData, "image/png", "This i
 urlMessage := NewImageURLMessage(domain.RoleUser, "https://example.com/image.jpg", "An image from the web")
 ```
 
-## Testing
+## Implementation Architecture
 
-Tests have been added to verify:
-- Proper conversion between the library's message format and provider-specific formats
-- Base64 encoding/decoding of binary data
-- Proper handling of different content types
+### Content Type Handling
 
-## Usage Examples
-
-### Text Message
+The system uses a type-safe approach with dedicated structures for each content type:
 
 ```go
-message := domain.NewTextMessage(domain.RoleUser, "Hello, how are you?")
+type ContentType string
+
+const (
+    ContentTypeText  ContentType = "text"
+    ContentTypeImage ContentType = "image" 
+    ContentTypeFile  ContentType = "file"
+    ContentTypeVideo ContentType = "video"
+    ContentTypeAudio ContentType = "audio"
+)
+
+type SourceType string
+
+const (
+    SourceTypeBase64 SourceType = "base64"
+    SourceTypeURL    SourceType = "url"
+)
 ```
 
-### Image Message
+### Memory Management
+
+For binary content, the implementation uses efficient memory management:
 
 ```go
-// From file
-imageData, _ := os.ReadFile("image.png")
-imageMessage := domain.NewImageMessage(domain.RoleUser, imageData, "image/png", "Describe this image")
-
-// From URL
-urlMessage := domain.NewImageURLMessage(domain.RoleUser, "https://example.com/image.jpg", "What's in this picture?")
+// ImageContent uses string for base64 data to avoid unnecessary []byte allocations
+type ImageContent struct {
+    Data      string     `json:"data,omitempty"`
+    URL       string     `json:"url,omitempty"`
+    MimeType  string     `json:"mime_type"`
+    Source    SourceType `json:"source"`
+}
 ```
 
-### File Attachment
+## Testing Strategy
+
+The multimodal implementation includes comprehensive tests:
+
+### Unit Tests
+- Message construction and validation
+- Content type conversion
+- Base64 encoding/decoding efficiency
+
+### Integration Tests  
+- Provider-specific format conversion
+- Round-trip message handling
+- Error cases for unsupported content types
+
+### Test Helpers
 
 ```go
-fileData, _ := os.ReadFile("document.pdf")
-fileMessage := domain.NewFileMessage(domain.RoleUser, "document.pdf", fileData, "application/pdf", "Summarize this document")
+// Test helper for creating multimodal messages
+func createTestImageMessage(t *testing.T) *domain.Message {
+    imageData := []byte{0x89, 0x50, 0x4E, 0x47} // PNG header
+    return domain.NewImageMessage(
+        domain.RoleUser,
+        imageData,
+        "image/png",
+        "Test image",
+    )
+}
 ```
 
 ## Provider Implementation Details
@@ -108,10 +143,70 @@ The Gemini provider implementation:
 - Converts ContentPart objects to Gemini's content format
 - Implements appropriate handling for different media types
 
-## Future Extensions
+## Extension Points
 
-The implementation is designed to be extensible for future provider-specific features while maintaining a consistent API across the library. Potential extensions include:
+### Adding New Content Types
 
-- Support for additional content types as providers expand their capabilities
-- Enhancements to content transformation and processing
-- Additional helper functions for specialized media handling
+To add support for new content types:
+
+1. **Define the content type constant**:
+```go
+const ContentTypeNewType ContentType = "new_type"
+```
+
+2. **Create the content structure**:
+```go
+type NewTypeContent struct {
+    Data     string     `json:"data,omitempty"`
+    URL      string     `json:"url,omitempty"`
+    MimeType string     `json:"mime_type"`
+    Source   SourceType `json:"source"`
+    // Add type-specific fields
+}
+```
+
+3. **Update ContentPart**:
+```go
+type ContentPart struct {
+    // ... existing fields
+    NewType *NewTypeContent `json:"new_type,omitempty"`
+}
+```
+
+4. **Add helper functions**:
+```go
+func NewNewTypeMessage(role Role, data []byte, mimeType, text string) *Message {
+    // Implementation
+}
+```
+
+### Provider-Specific Adaptations
+
+Each provider requires specific adaptations in their respective implementation files:
+
+```go
+// In provider implementation (e.g., openai.go)
+func (p *openAIProvider) convertContentParts(parts []domain.ContentPart) []openAIContent {
+    // Handle provider-specific content format
+}
+```
+
+## Performance Considerations
+
+1. **Base64 Encoding**: Use string type for base64 data to avoid allocations
+2. **Content Validation**: Validate content size limits per provider
+3. **Memory Pooling**: Consider using sync.Pool for large binary content
+4. **Streaming**: Support streaming for large media files (future)
+
+## Security Considerations
+
+1. **Content Validation**: Validate MIME types and file headers
+2. **Size Limits**: Enforce provider-specific size limits
+3. **URL Validation**: Validate URLs before fetching content
+4. **Sanitization**: Sanitize file names and metadata
+
+## Related Documentation
+
+- [Provider Implementation Guide](provider-implementation.md)
+- [Testing Framework](testing.md)
+- [Performance Optimization](performance.md)

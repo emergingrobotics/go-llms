@@ -1,5 +1,40 @@
 # Go-LLMs Completed Tasks
 
+## v0.3.2 Documentation Update (Completed - January 11, 2025)
+- [x] 0.3.2.1: Tag release v0.3.2 (ready for tagging)
+- [x] Documentation simplification and refactoring:
+  - [x] API Documentation (docs/api) - COMPLETED (January 11, 2025)
+    - Created tools.md, workflows.md, builtins.md, utils.md, testutils.md
+    - Updated agent.md, llm.md, schema.md, structured.md
+    - Updated docs/api/README.md with new modular structure
+  - [x] User Guide Documentation (docs/user-guide) - COMPLETED (January 11, 2025)
+    - Created getting-started.md, core-concepts.md, providers.md
+    - Created agents.md, tools.md, workflows.md
+    - Updated structured-output.md, multimodal-content.md
+    - Updated examples-gallery.md, error-handling.md
+    - Merged and consolidated redundant content
+  - [x] Technical Documentation (docs/technical) - COMPLETED (January 11, 2025)
+    - Updated architecture.md, performance.md, concurrency.md, caching.md
+    - Created provider-implementation.md, tool-development.md
+    - Updated testing.md, authentication.md, logging.md, tools.md
+    - Updated multimodal-content.md, built-in-components.md
+    - Removed duplicate content between technical and user guides
+  - [x] Archives Documentation (docs/archives) - COMPLETED (January 11, 2025)
+    - Moved docs/plan to docs/archives
+    - Reviewed and categorized all archived files
+    - Moved outdated design documents to archives
+    - Updated archives/README.md with historical context
+    - Renamed files for consistency (underscores to hyphens)
+  - [x] Root Documentation (README.md and related) - COMPLETED (January 11, 2025)
+    - Merged REFERENCE.md into docs/README.md
+    - Created CHANGELOG.md consolidating all release notes
+    - Deleted RELEASE_NOTES_v0.3.1.md after consolidation
+    - Updated README.md with clear value proposition and navigation
+    - Cleaned root directory of redundant files
+
+## v0.3.1 Release (Completed - January 10, 2025)
+- [x] 0.3.1.1: Tag release v0.3.1
+
 ## Phase 4: Documentation & Polish (Completed - January 10, 2025)
 - [x] Day 1-2: Technical documentation (COMPLETED - January 10, 2025)
   - [x] Created comprehensive docs/technical/tools.md
@@ -1113,28 +1148,77 @@ After analyzing Google's Agent Development Kit (ADK), we identified key features
   - [x] All tests passing (280+ tests)
 
 ## Phase 4: Documentation & Polish (Completed - January 10, 2025)
-- [x] Day 1-2: Technical documentation (COMPLETED - January 10, 2025)
-  - [x] Created comprehensive docs/technical/tools.md
-  - [x] Documented ToolBuilder pattern and best practices
-  - [x] Added tool development guidelines
-  - [x] Architecture diagrams completed:
-    - [x] Created docs/images/tool_architecture.svg - Overall tool system architecture
-    - [x] Created docs/images/tool_lifecycle.svg - Tool creation and execution flow
-    - [x] Created docs/images/toolbuilder_pattern.svg - ToolBuilder pattern details
-  - [x] Updated docs/technical/tools.md with diagrams and enhanced features section
-  - [x] Added comprehensive tool creation example
-- [x] Day 3-4: User guide updates (COMPLETED - January 10, 2025)
-  - [x] Created docs/user-guide/tool-development.md with comprehensive guide
-  - [x] Updated docs/user-guide/builtin-tools.md documenting all 32 tools
-  - [x] Created docs/user-guide/examples-gallery.md showcasing 40+ examples
-  - [x] Created docs/README.md as documentation index
-- [x] Day 5: Final testing & release (COMPLETED - January 10, 2025)
-  - [x] Run full test suite - All unit tests passing (44.3% coverage)
-  - [x] Performance validation - Excellent benchmark results:
-    - API Client: ~115μs for simple GET
-    - Tool Execution: ~6.3μs per call
-    - State Operations: ~67ns for get/set
-  - [x] Created RELEASE_NOTES_v0.3.1.md
-  - [x] Fixed 8 broken example links in README.md and REFERENCE.md
-  - [x] Ready for v0.3.1 release tag
-  - [x] Authentication integration for protected feeds
+### 0.3.2.1 API Documentation (docs/api) (look through code that's been implemented) ✅ COMPLETED
+- [x] Create tools.md - Tools API Documentation for pkg/agent/tools
+- [x] Create workflows.md - Workflow API Documentation for pkg/agent/workflow
+- [x] Create builtins.md - Built-ins API Documentation for pkg/agent/builtins
+- [x] Create utils.md - Utilities API Documentation for pkg/util/*
+- [x] Create testutils.md - Test Utilities API Documentation for pkg/testutils/*
+- [x] Update agent.md - Focus on core agent concepts with cross-references to tools/workflows/builtins
+- [x] Update llm.md - Ensure consistency with new structure
+- [x] Update schema.md - Ensure consistency with new structure
+- [x] Update structured.md - Ensure consistency with new structure
+- [x] Update docs/api/README.md - Update index to reflect new modular structure
+### 0.3.2.2 Restructure of User Guide Documentation (docs/user-guide) (look through code that's been implemented) ✅ COMPLETED
+#### Core Getting Started Flow
+- [x] Create/Update getting-started.md - Installation and first program
+- [x] Create core-concepts.md - Essential concepts (providers, messages, options)
+- [x] Create providers.md - Working with different LLM providers (consolidate from existing)
+- [x] Update structured-output.md - Keep focused on extracting structured data
+#### Advanced Features
+- [x] Create agents.md - Building and using agents (user perspective)
+- [x] Create tools.md - Merge builtin-tools.md and built-in-components.md
+- [x] Create workflows.md - Composing agent workflows (user perspective)
+- [x] Update multimodal-content.md - Keep focused on working with images/content
+#### Consolidation and Cleanup
+- [x] Merge web-search-tool.md content into tools.md
+- [x] Update examples-gallery.md - Make it a quick reference/index
+- [x] Delete redundant files after merging
+- [x] Move old/redundant files to docs/archives
+- [x] Update docs/user-guide/README.md - New structure and learning path
+### 0.3.2.3 Restructure of Technical Documentation (docs/technical) ✅ COMPLETED
+#### Core Architecture Documentation
+- [x] Update architecture.md - System design, components, and data flow
+- [x] Create provider-implementation.md - How to add new LLM providers
+- [x] Create tool-development.md - Internal tool architecture and patterns
+- [x] Update performance.md - Performance considerations and optimizations
+#### Implementation Details
+- [x] Update concurrency.md - Concurrency patterns used in the library
+- [x] Update caching.md - Caching strategies and implementation
+- [x] Update testing.md - Testing approach and guidelines
+- [x] Update authentication.md - Auth system architecture
+#### Cleanup and Organization
+- [x] Remove duplicate content (keep technical details here, user guides in user-guide/)
+- [x] Move multimodal-content.md user aspects to user-guide, keep technical here
+- [x] Move built-in-components.md user aspects to user-guide, keep technical here
+- [x] Delete redundant files after content migration
+- [x] Update docs/technical/README.md - New structure for contributors
+### 0.3.2.4 Restructure of archives (docs/archives) ✅ COMPLETED
+- [x] move docs/plan documentation to docs/archives, remove docs/plan
+- [x] Review and categorize all files in archives directory
+- [x] Remove outdated design documents that are now fully implemented
+- [x] Keep only historical context valuable for understanding decisions
+- [x] Update archives/README.md explaining what's archived and why
+- [x] Move docs/BETA_DOCUMENTATION_REVIEW.md to archives
+- [x] Move docs/DOCUMENTATION_CONSOLIDATION.md to archives
+- [x] Move docs/MIGRATION_GUIDE_PHASE5.md to archives
+- [x] Ensure consistent file naming (convert underscores to hyphens)
+### 0.3.2.5 Root Documentation (README.md and related documentation and root) ✅ COMPLETED (January 11, 2025)
+#### REFERENCE.md Restructuring
+- [x] Reorganize by user journey: Getting Started → Core Features → Advanced → Contributing
+- [x] Restructure and Update docs/README.md with relevant docs/ documentation and links and backlinks
+- [x] Update all links based on new documentation structure from 0.3.2.1-0.3.2.4
+- [x] Group documentation by type (API Reference, User Guides, Technical Docs)
+- [x] Add brief descriptions for each linked document
+- [x] perhaps REFERENCE.md should be removed from root and merged with docs/README.md
+#### README.md Simplification
+- [x] Rewrite opening to clearly state go-llms value proposition
+- [x] Simplify quick start section with minimal example
+- [x] Create clear feature overview with links to detailed docs
+- [x] Reduce code examples to bare essentials
+- [x] Add clear navigation to different documentation sections
+#### Other Root Files
+- [x] Create CHANGELOG.md consolidating all release notes
+- [x] Move RELEASE_NOTES_v0.3.1.md content into CHANGELOG.md
+- [x] Delete RELEASE_NOTES_v0.3.1.md after consolidation
+- [x] Ensure only approved markdown files remain in root

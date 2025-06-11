@@ -1,6 +1,6 @@
 # Go-LLMs: Unified Go Library for LLM Integration
 
-A lightweight Go library providing a simplified, unified interface to interact with various LLM providers while offering robust data validation and agent tooling.
+A lightweight Go library providing a simplified, unified interface to interact with various LLM providers while offering robust data validation and agent tooling and multi-agent orchestration via workflows and state management.
 
 ## Features
 
@@ -14,14 +14,23 @@ A lightweight Go library providing a simplified, unified interface to interact w
 - **Type-safe configuration** with interface-based provider options
 - **Minimal dependencies** leveraging Go's standard library
 
-## What's New in v0.3.1
+## What's New in v0.3.2
 
-See [RELEASE_NOTES_v0.3.1.md](RELEASE_NOTES_v0.3.1.md) for details on:
+See [CHANGELOG.md](CHANGELOG.md) for the complete version history.
+
+### v0.3.2 (January 11, 2025) - Documentation Update
+- Complete documentation restructuring for better user experience
+- Modularized API documentation with dedicated files for each component
+- Improved user guide following natural learning progression
+- Enhanced technical documentation with new guides for providers and tools
+- Consolidated redundant content and improved cross-linking
+
+### v0.3.1 (January 10, 2025) - Tool System Enhancement
 - Enhanced ToolBuilder pattern for all 32 built-in tools
 - Comprehensive LLM guidance metadata (examples, constraints, error handling)
 - MCP (Model Context Protocol) compatibility
 - Advanced authentication support for web tools
-- Performance improvements and documentation updates
+- Performance improvements
 
 ## Installation
 
@@ -91,12 +100,13 @@ result, err := provider.GenerateWithSchema(
 
 ## Documentation
 
-- [Getting Started Guide](docs/user-guide/getting-started.md)
-- [Built-in Tools Reference](docs/user-guide/builtin-tools.md)
-- [Tool Development Guide](docs/user-guide/tool-development.md)
-- [Examples Gallery](docs/user-guide/examples-gallery.md)
-- [API Reference](docs/api/)
-- [Architecture Overview](docs/technical/architecture.md)
+- **[Complete Documentation](/docs/README.md)** - Full documentation index
+- [Getting Started Guide](docs/user-guide/getting-started.md) - Quick start and basic concepts
+- [User Guide](docs/user-guide/README.md) - Complete user documentation
+- [Tools & Components](docs/user-guide/tools.md) - Built-in tools and components
+- [Examples Gallery](docs/user-guide/examples-gallery.md) - Usage examples
+- [API Reference](docs/api/README.md) - Complete API documentation
+- [Technical Documentation](docs/technical/README.md) - Architecture and implementation details
 
 ## Examples
 

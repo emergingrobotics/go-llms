@@ -1,32 +1,69 @@
 # Technical Documentation
 
-> **[Documentation Home](/REFERENCE.md) / Technical Documentation**
+> **[Documentation Home](/docs/README.md) / Technical Documentation**
 
-This directory contains technical documentation for the Go-LLMs library, focusing on architecture, performance optimization, and implementation details.
+This directory contains technical documentation for the Go-LLMs library, intended for contributors and advanced users who need to understand the internal architecture, implementation patterns, and optimization strategies.
 
 *Related: [User Guide](/docs/user-guide/README.md) | [API Reference](/docs/api/README.md)*
 
-## Available Documentation
+## Core Architecture
 
-- [Architecture](architecture.md) - Overview of the library architecture, component structure, and interaction patterns
-- [Agent Architecture](agents.md) - Complete agent architecture documentation including core infrastructure and enhanced components
-- [Performance Optimization](performance.md) - Comprehensive overview of performance optimization strategies
-- [Testing Framework](testing.md) - Detailed overview of error condition testing and stress testing
-- [Benchmarking Framework](benchmarks.md) - Detailed overview of performance benchmarks
-- [Sync.Pool Implementation](sync-pool.md) - Detailed guide on sync.Pool usage for memory optimization
-- [Caching Mechanisms](caching.md) - Explanation of caching strategies and implementations
-- [Concurrency Patterns](concurrency.md) - Documentation of thread safety and concurrent execution patterns
-- [Adding a New Provider](new-provider.md) - Step-by-step guide to implementing and integrating a new LLM provider
-- [Multimodal Content Implementation](multimodal-content.md) - Detailed overview of multimodal content support (text, images, files, video, audio)
-- [Dependency Reduction Journey](dependency_reduction.md) - Complete chronicle of our dependency reduction efforts from viper/cobra to stdlib
-- [Logging](logging.md) - Comprehensive guide to logging patterns and best practices in go-llms
-- [Built-in Components](built-in-components.md) - Architecture and design of the built-in components system (tools, agents, workflows)
-- [Authentication](authentication.md) - Unified authentication system for HTTP requests with state-based credential management
+- [Architecture Overview](architecture.md) - System design, component structure, and data flow patterns
+- [Agent Architecture](agents.md) - Agent system implementation details and patterns
+- [Tool Development](tool-development.md) - Internal tool architecture and development patterns
+- [Built-in Components](built-in-components.md) - Registry system and component patterns
 
-## Target Audience
+## Implementation Guides
 
-These technical documents are intended for:
+- [Provider Implementation](provider-implementation.md) - How to add new LLM providers
+- [Authentication System](authentication.md) - Authentication architecture and patterns
+- [Multimodal Content](multimodal-content.md) - Technical implementation of multimodal support
 
-- Library contributors who need to understand implementation details
-- Advanced users who want to optimize their usage of the library
-- Developers interested in the architectural patterns used in Go-LLMs
+## Performance & Optimization
+
+- [Performance Optimization](performance.md) - Optimization strategies and benchmarks
+- [Caching Mechanisms](caching.md) - Cache implementations and strategies
+- [Concurrency Patterns](concurrency.md) - Thread safety and concurrent execution
+- [Sync.Pool Implementation](sync-pool.md) - Memory optimization with object pooling
+
+## Testing & Quality
+
+- [Testing Framework](testing.md) - Testing strategies and patterns
+- [Benchmarking Framework](benchmarks.md) - Performance measurement approach
+
+## Development Practices
+
+- [Logging](logging.md) - Logging patterns and best practices
+- [Dependency Reduction](dependency_reduction.md) - Journey from heavy dependencies to stdlib
+- [Tools](tools.md) - Tool system architecture and patterns
+
+## Navigation
+
+### For Contributors
+1. Start with [Architecture Overview](architecture.md)
+2. Review relevant implementation guides
+3. Understand [Testing Framework](testing.md)
+4. Follow [Development Practices](#development-practices)
+
+### For Provider Implementers
+1. Read [Provider Implementation](provider-implementation.md)
+2. Understand [Authentication System](authentication.md)
+3. Review [Testing Framework](testing.md)
+
+### For Tool Developers
+1. Study [Tool Development](tool-development.md)
+2. Review [Built-in Components](built-in-components.md)
+3. Understand [Agent Architecture](agents.md)
+
+### For Performance Optimization
+1. Read [Performance Optimization](performance.md)
+2. Understand [Caching Mechanisms](caching.md)
+3. Review [Concurrency Patterns](concurrency.md)
+
+## Contributing
+
+When contributing technical documentation:
+1. Focus on implementation details, not usage
+2. Include code examples from actual implementation
+3. Cross-reference related documentation
+4. Keep content up-to-date with code changes

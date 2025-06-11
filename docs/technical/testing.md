@@ -1,6 +1,6 @@
 # Testing Framework and Strategy
 
-> **[Documentation Home](/REFERENCE.md) / [Technical Documentation](/docs/technical/) / Testing Framework**
+> **[Documentation Home](/docs/README.md) / [Technical Documentation](/docs/technical/README.md) / Testing Framework**
 
 This document outlines the testing approach implemented in Go-LLMs, focusing on comprehensive test coverage, error condition handling, and stress testing for high-load scenarios.
 

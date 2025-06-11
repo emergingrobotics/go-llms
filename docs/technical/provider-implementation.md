@@ -1,8 +1,8 @@
-# Adding a New Provider to Go-LLMs
+# Provider Implementation Guide
 
-> **[Documentation Home](/REFERENCE.md) / [Technical Documentation](/docs/technical/README.md) / Adding a New Provider**
+> **[Documentation Home](/docs/README.md) / [Technical Documentation](/docs/technical/README.md) / Provider Implementation**
 
-This guide provides a step-by-step approach to adding a new LLM provider to the Go-LLMs library. By following these instructions, you'll learn how to implement, test, and integrate a new provider into the existing architecture.
+This comprehensive guide explains how to implement new LLM providers for the Go-LLMs library. It covers the provider interface, implementation patterns, testing strategies, and integration with the broader system.
 
 ## Overview
 

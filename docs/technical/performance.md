@@ -1,8 +1,8 @@
 # Performance Optimization
 
-> **[Documentation Home](/REFERENCE.md) / [Technical Documentation](/docs/technical/) / Performance Optimization**
+> **[Documentation Home](/docs/README.md) / [Technical Documentation](/docs/technical/README.md) / Performance Optimization**
 
-This document provides a comprehensive overview of the performance optimization strategies implemented in Go-LLMs.
+This document provides a comprehensive overview of the performance optimization strategies implemented in Go-LLMs, including benchmarks, profiling results, and implementation details.
 
 ## Table of Contents
 
