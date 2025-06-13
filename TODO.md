@@ -165,6 +165,12 @@
 - [ ] Add examples and documentation
 
 ## v0.3.6: Advanced Agent Features
+### 0.3.6.1 Advanced Tool features
+- [ ] research and figure out tool listing best method one or more of the below:
+  - [ ] Static tool listing method: A function like tools.GetAvailableToolNames() that returns tool names without requiring imports
+  - [ ] Tool manifest: A generated file or constant that lists all available tools and their metadata
+  - [ ] Lazy registration: A way to discover tools without importing all packages, then load them on demand
+
 ### 0.3.6.1: State Management 
 - [ ] State persistence and serialization design
 - [ ] Implement state storage backends (file, database)
