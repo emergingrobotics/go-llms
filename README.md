@@ -5,7 +5,7 @@ Build powerful AI applications with a clean, unified interface to multiple LLM p
 ## Why Go-LLMs?
 
 - **One Library, All Providers** - Switch between OpenAI, Anthropic, Google, Ollama, and more with the same code
-- **Production Ready** - Built-in error handling, rate limiting, retries, and monitoring
+- **Production Readiness Mindset** - Built-in error handling, rate limiting, retries, and monitoring
 - **Rich Tooling** - 33+ built-in tools for web, files, calculations, and data processing
 - **Smart Agents** - Create conversational AI that can use tools and coordinate with other agents
 - **Structured Data** - Get reliable, validated JSON/XML output instead of unpredictable text
@@ -20,7 +20,6 @@ Build powerful AI applications with a clean, unified interface to multiple LLM p
 🔍 **Tool Discovery** - Dynamic tool exploration perfect for scripting engines  
 🌐 **Multimodal Content** - Text, images, audio, video, and file support  
 ⚡ **Performance Optimized** - Concurrent execution, streaming, caching  
-🏗️ **Enterprise Ready** - Error handling, monitoring, testing infrastructure
 
 ## Installation
 
@@ -150,10 +149,12 @@ result, _ := workflow.Run(context.Background(), state)
 |----------|----------|---------|-------|
 | **OpenAI** | General use, reliability | GPT-4o, GPT-4 Turbo, GPT-4o-mini | [Guide](docs/user-guide/guides/provider-setup.md#openai) |
 | **Anthropic** | Analysis, reasoning | Claude 3.5 Sonnet, Claude 3 Opus | [Guide](docs/user-guide/guides/provider-setup.md#anthropic) |
-| **Google Gemini** | Multimodal, speed | Gemini 2.0 Flash Lite, Gemini Pro | [Guide](docs/user-guide/guides/provider-setup.md#google) |
-| **Vertex AI** | Enterprise, compliance | Gemini + partner models | [Guide](docs/user-guide/guides/provider-setup.md#vertex-ai) |
+| **Google Gemini** | Multimodal, speed | Gemini 2.0 Flash Lite, Gemini Pro | [Guide](docs/user-guide/guides/provider-setup.md#google) ** |
+| **Vertex AI** ** | Enterprise, compliance | Gemini + partner models | [Guide](docs/user-guide/guides/provider-setup.md#vertex-ai) |
 | **Ollama** | Local hosting, privacy | Llama, Mistral, CodeLlama | [Guide](docs/user-guide/guides/local-providers.md) |
 | **OpenRouter** | Model variety, cost | 400+ models (68 free) | [Guide](docs/user-guide/guides/provider-setup.md#openrouter) |
+
+** Untested integration 
 
 See our [provider comparison guide](docs/user-guide/reference/provider-comparison.md) for detailed feature matrices.
 
@@ -219,7 +220,6 @@ go run docs/user-guide/getting-started/quickstart.go
 
 ## Status
 
-✅ **Production Ready** - Used in production applications  
 ✅ **Actively Maintained** - Regular updates and improvements  
 ✅ **Comprehensive Testing** - 280+ tests with >85% coverage  
 ✅ **Complete Documentation** - User guides, API docs, examples  
