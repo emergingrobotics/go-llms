@@ -2,67 +2,45 @@
 
 Project guidance for Claude Code when working with go-llms.
 
-## Project: Go-LLMs v0.3.5
+## Project: Go-LLMs v0.3.5 ✅ RELEASED
 
 Unified Go interface for LLM providers with agent tooling.
 
-**Status**: v0.3.5 Complete - All scripting engine requirements implemented (June 15, 2025)
+**Status**: v0.3.5 Released (June 15, 2025)
 **Providers**: OpenAI, Anthropic, Google (Gemini, Vertex AI), Ollama, OpenRouter  
-**Current**: v0.3.5 testing infrastructure complete, awaiting downstream integration
-**Next**: v0.3.6+ features based on downstream feedback
-**Build Status**: make test; make fmt; make vet; make lint - All passing ✅
+**Build Status**: All checks passing ✅
 
-## v0.3.5 Complete:
-All scripting engine integration requirements implemented:
-- ✅ Schema Package (repositories, generators)
-- ✅ Enhanced Error Handling (serializable errors, recovery strategies)
-- ✅ Tool Discovery (dynamic registration, persistence)
-- ✅ Bridge-Friendly Types (conversion registry)
-- ✅ Event System (serialization, filtering, replay)
-- ✅ Workflow Serialization (templates, script steps)
-- ✅ Provider Metadata (capabilities, configuration)
-- ✅ Structured Output (parsers, validators)
-- ✅ Testing Infrastructure (mocks, scenarios, fixtures)
-- ✅ Documentation Generation (OpenAPI, Markdown, JSON)
-
-## Test Status:
-- All tests passing ✅ (280+ unit tests)
-- Comprehensive test infrastructure with mocks, scenarios, fixtures
-- Integration tests require API keys
-
-## Ready for Downstream:
-All v0.3.5 requirements complete and ready for go-llmspell integration:
-- Bridge-compatible error system
-- Runtime tool registration
+## v0.3.5 Features:
+Complete scripting engine integration with:
+- Schema Package & JSON validation
+- Serializable error system
+- Dynamic tool discovery & registration  
 - Type conversion registry
-- Event serialization/filtering
-- Workflow templates with script steps
-- Comprehensive testing utilities
+- Event system with serialization/filtering
+- Workflow templates & script steps
+- Provider metadata & capabilities
+- Structured output parsers
+- Comprehensive testing infrastructure (280+ tests)
+- Documentation generation (OpenAPI, Markdown, JSON)
 
 ## Commands
 ```bash
-make test        # Unit tests
-make test-all    # All tests  
-make lint fmt    # Lint & format
-make generate    # Generate tool metadata
+make test fmt lint    # Standard workflow
+make test-all         # All tests including integration
+make generate         # Generate tool metadata
 ```
 
-## Key Rules
+## Development Rules
 - No backward compatibility until v1.0
-- No logging in pkg/ (library code)
-- Follow existing patterns
+- No logging in pkg/ (library code)  
 - Run `make fmt lint` before committing
+- Put common test fixtures, mocks, helpers and scenarios in pkgt/testutils for reuse
+
 
 ## Architecture
 - `pkg/llm/` - Provider implementations
-- `pkg/agent/` - Tools, state, workflows, discovery
+- `pkg/agent/` - Tools, workflows, discovery
 - `pkg/schema/` - JSON validation
 - `pkg/structured/` - Structured outputs
 - `pkg/errors/` - Serializable error system
 - `pkg/testutils/` - Testing infrastructure
-
-## Important Files
-- `TODO.md` - Current tasks (v0.3.6+ deferred items)
-- `TODO-DONE.md` - Completed v0.3.x features
-- `pkg/testutils/` - Comprehensive test infrastructure
-- `docs/technical/testing.md` - Testing documentation
