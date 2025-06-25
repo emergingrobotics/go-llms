@@ -212,7 +212,49 @@ curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/insta
 golangci-lint run
 ```
 
-### 3. Editor Setup
+### 3. Build Tags and Conditional Compilation
+
+#### Understanding the `+tools` Build Tag
+
+Go-LLMs uses build tags to optimize binary size and dependencies. The most important is the `+tools` tag:
+
+**Default behavior (no build tag):**
+```go
+// Import only the tools you need
+import (
+    _ "github.com/lexlapax/go-llms/pkg/agent/builtins/tools/math"
+    _ "github.com/lexlapax/go-llms/pkg/agent/builtins/tools/web"
+)
+
+// Tools are available after import
+calc, _ := tools.GetTool("calculator")
+```
+
+**With `+tools` tag (imports ALL tools):**
+```bash
+# Compiles with all 30+ built-in tools
+go build -tags tools ./...
+```
+
+#### When to Use Build Tags
+
+| Use Case | Recommendation | Example |
+|----------|----------------|---------|
+| **Library Users** | Don't use build tags - import specific tools | `import _ ".../tools/math"` |
+| **Production Apps** | Selective imports only | Import 2-3 tools you need |
+| **CLI Tools** | Consider `+tools` for dynamic loading | `go build -tags tools` |
+| **Tool Discovery UIs** | No tag needed - metadata available | Use `tools.GetToolMetadata()` |
+
+#### Why Avoid `+tools`?
+
+1. **Binary Size**: Adds ~1.6MB from all tool implementations
+2. **Dependencies**: Includes GraphQL parser and other libraries
+3. **Security**: Imports tools like command execution you may not want
+4. **Performance**: Loads unnecessary code into memory
+
+**Best Practice**: Import only what you need for smaller, more secure binaries.
+
+### 4. Editor Setup
 
 #### VS Code
 Install these extensions for the best experience:

@@ -54,6 +54,63 @@ type Tool interface {
 
 ## Tool Discovery and Registration
 
+### Build Tags and Conditional Compilation
+
+Go-LLMs uses a sophisticated build tag system to separate tool metadata from implementations:
+
+#### The `+tools` Build Tag Architecture
+
+```go
+// Without +tools tag (default):
+// - registry_metadata.go provides tool metadata
+// - Tool factories return placeholder implementations
+// - Perfect for tool discovery UIs and documentation
+
+// With +tools tag:
+// - registry_factories.go is compiled
+// - All 30+ built-in tools are imported
+// - Full tool functionality available
+```
+
+#### Usage Patterns
+
+**Standard Library Usage (Recommended):**
+```go
+// Import only the tools you need
+import (
+    _ "github.com/lexlapax/go-llms/pkg/agent/builtins/tools/math"
+    _ "github.com/lexlapax/go-llms/pkg/agent/builtins/tools/file"
+)
+
+// Tools auto-register on import
+tool, _ := tools.GetTool("calculator")
+```
+
+**Metadata-Only Discovery:**
+```go
+// No imports needed!
+discovery := tools.NewDiscovery()
+metadata := discovery.ListTools() // Works without implementations
+schema := discovery.GetToolSchema("calculator") // Returns schema
+tool, err := discovery.CreateTool("calculator") // Error without +tools
+```
+
+**Full Dynamic Loading:**
+```bash
+# Build with all tools for CLI/scripting engines
+go build -tags tools ./cmd/mycli
+```
+
+#### Build Tag Implications
+
+| Aspect | Without `+tools` | With `+tools` |
+|--------|------------------|---------------|
+| Binary Size | Minimal | +1.6MB |
+| Dependencies | Only what you import | All tool dependencies |
+| Tool Discovery | ✓ Metadata available | ✓ Full functionality |
+| Tool Creation | ✗ Requires imports | ✓ Dynamic creation |
+| Security | Only imported tools | All tools including exec |
+
 ### Registry System
 
 Tools are registered in a global registry with metadata:

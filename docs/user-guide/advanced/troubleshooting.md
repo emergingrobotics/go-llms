@@ -555,6 +555,58 @@ defer tracePerformance(ctx, "API call")()
 
 ### Tool and Agent Issues
 
+#### Problem: Tool not found or not registered
+```
+Error: tool 'calculator' not found
+Error: tool calculator not yet loaded - import the tool package to use it
+```
+
+**Diagnosis:**
+```go
+// Check available tools
+discovery := tools.NewDiscovery()
+allTools := discovery.ListTools()
+fmt.Printf("Available tools: %d\n", len(allTools))
+
+// Check if tool metadata exists
+if schema, err := discovery.GetToolSchema("calculator"); err == nil {
+    fmt.Println("Tool metadata found")
+} else {
+    fmt.Println("Tool metadata missing")
+}
+
+// Try to create tool
+if tool, err := discovery.CreateTool("calculator"); err != nil {
+    fmt.Printf("Tool creation failed: %v\n", err)
+}
+```
+
+**Solutions:**
+1. Import the required tool package:
+   ```go
+   import (
+       _ "github.com/lexlapax/go-llms/pkg/agent/builtins/tools/math"
+       // This registers the calculator tool
+   )
+   ```
+
+2. Or build with the `+tools` tag (imports ALL tools):
+   ```bash
+   # This includes all 30+ built-in tools
+   go build -tags tools ./...
+   ```
+
+3. Verify tool registration:
+   ```go
+   // After import, tool should be available
+   tool, found := tools.GetTool("calculator")
+   if !found {
+       log.Fatal("Tool still not registered after import")
+   }
+   ```
+
+**Note:** The `+tools` build tag adds ~1.6MB to binary size and includes all tool dependencies (GraphQL parser, etc). Only use it if you need dynamic tool loading.
+
 #### Problem: Tool execution failures
 ```
 Error: tool 'web_fetch' failed: connection refused

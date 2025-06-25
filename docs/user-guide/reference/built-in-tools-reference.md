@@ -25,17 +25,26 @@ type Tool interface {
 ### Using Tools with Agents
 
 ```go
+// Import specific tools (recommended approach)
+import (
+    _ "github.com/lexlapax/go-llms/pkg/agent/builtins/tools/file"
+    _ "github.com/lexlapax/go-llms/pkg/agent/builtins/tools/web"
+    _ "github.com/lexlapax/go-llms/pkg/agent/builtins/tools/math"
+)
+
 // Basic tool usage
 agent := core.NewLLMAgent("assistant", provider, core.WithTools(
     tools.Tools.Get("file_read"),
-    tools.NewWebFetchTool(),
-    tools.NewCalculatorTool(),
+    tools.Tools.Get("web_fetch"),
+    tools.Tools.Get("calculator"),
 ))
 
 // Tool discovery
-registry := discover.NewToolRegistry()
-allTools := registry.ListTools()
+discovery := tools.NewDiscovery()
+allTools := discovery.ListTools()
 ```
+
+> **Note on Build Tags:** Go-LLMs uses selective imports by default. Import only the tool packages you need to keep binary size minimal. The `+tools` build tag imports ALL tools but adds ~1.6MB to binary size. See [Installation Guide](../getting-started/installation.md#build-tags-and-conditional-compilation) for details.
 
 ---
 
