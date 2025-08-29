@@ -1,4 +1,5 @@
 # Go-LLMs: Unified Go Library for LLM Integration
+**This was a good start and prototype to get the concept started quickly. This library has now been superceded by a rust based library available at https://github.com/lexlapax/rs-llmspell. Going forward, this library will not be actively worked on unless someone wants to add a quick fix if it's usefule to them.**
 
 Build powerful AI applications with a clean, unified interface to multiple LLM providers. Go-LLMs provides everything you need: from simple text generation to complex multi-agent workflows with built-in tools and structured outputs.
 
