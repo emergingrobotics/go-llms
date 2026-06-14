@@ -34,37 +34,52 @@ Get started in 5 minutes with our [interactive quickstart guide](docs/user-guide
 
 ### 1. Simple AI Conversation
 
+**With Ollama (local, no API key required):**
+
+Install Ollama from [ollama.com](https://ollama.com), pull a model, then:
+
 ```go
 package main
 
 import (
     "context"
     "fmt"
-    "os"
-    
+    "log"
+
     agentdomain "github.com/lexlapax/go-llms/pkg/agent/domain"
     "github.com/lexlapax/go-llms/pkg/agent/core"
     "github.com/lexlapax/go-llms/pkg/llm/provider"
 )
 
 func main() {
-    // Create provider
-    p := provider.NewOpenAIProvider(os.Getenv("OPENAI_API_KEY"), "gpt-4")
-    
-    // Create agent
+    // No API key needed — requires Ollama running locally
+    // Install: https://ollama.com, then: ollama pull llama3.2:3b
+    p := provider.NewOllamaProvider("llama3.2:3b")
+
     agent := core.NewLLMAgent("assistant", "A helpful AI assistant", core.LLMDeps{Provider: p})
     agent.SetSystemPrompt("You are a helpful assistant.")
-    
-    // Chat
+
     state := agentdomain.NewState()
     state.Set("user_input", "Explain quantum computing in simple terms")
-    result, _ := agent.Run(context.Background(), state)
-    
+    result, err := agent.Run(context.Background(), state)
+    if err != nil {
+        log.Fatal(err)
+    }
+
     if response, ok := result.Get("response"); ok {
         fmt.Println(response)
     }
 }
 ```
+
+**With OpenAI (cloud):**
+
+```go
+// Replace the provider line above with:
+p := provider.NewOpenAIProvider(os.Getenv("OPENAI_API_KEY"), "gpt-4o")
+```
+
+See the [Ollama setup guide](docs/user-guide/guides/local-providers.md) for model options and configuration.
 
 ### 2. Agent with Tools
 
@@ -212,15 +227,27 @@ pkg/
 ```bash
 # Install
 go get github.com/lexlapax/go-llms
+```
 
-# Try the quickstart
+**No API key? Start with Ollama (local, free):**
+
+```bash
+# Install Ollama from https://ollama.com, then:
+ollama pull llama3.2:3b
+cd cmd/examples/provider-ollama && go run main.go
+```
+
+**Have a cloud API key?**
+
+```bash
 export OPENAI_API_KEY="your-key-here"
-go run docs/user-guide/getting-started/quickstart.go
+cd cmd/examples/simple && go run main.go
 ```
 
 **Choose your path:**
+- **No API key?** → [Local Providers (Ollama)](docs/user-guide/guides/local-providers.md)
 - **New to AI?** → [5-Minute Quickstart](docs/user-guide/getting-started/quickstart.md)
-- **Build apps?** → [Chat Application Guide](docs/user-guide/guides/building-chat-apps.md)  
+- **Build apps?** → [Chat Application Guide](docs/user-guide/guides/building-chat-apps.md)
 - **Production use?** → [Enterprise Deployment](docs/user-guide/advanced/production-deployment.md)
 - **Contributing?** → [Technical Documentation](docs/technical/README.md)
 

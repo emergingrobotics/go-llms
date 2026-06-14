@@ -10,7 +10,9 @@ Get your first AI conversation working in 5 minutes! This guide assumes you have
 ## Prerequisites
 
 - Go 1.21 or later installed
-- OpenAI API key ([get one here](https://platform.openai.com/api-keys))
+- **One of the following:**
+  - OpenAI API key ([get one here](https://platform.openai.com/api-keys)), **OR**
+  - Ollama installed locally ([ollama.com](https://ollama.com)) — free, no account needed
 - 5 minutes of your time
 
 ## Step 1: Create a New Go Project
@@ -27,19 +29,68 @@ go mod init my-ai-app
 go get github.com/lexlapax/go-llms
 ```
 
-## Step 2: Set Your API Key
+## Step 2: Set Up Your Provider
+
+**Option A — Ollama (no API key, runs locally):**
 
 ```bash
-# Set environment variable (replace with your actual key)
-export OPENAI_API_KEY="sk-your-openai-key-here"
+# Install Ollama from https://ollama.com, then pull a model:
+ollama pull llama3.2:3b
 
-# Or create a .env file
-echo "OPENAI_API_KEY=sk-your-openai-key-here" > .env
+# Verify it's running:
+curl http://localhost:11434/api/tags
+```
+
+**Option B — OpenAI (cloud API key required):**
+
+```bash
+export OPENAI_API_KEY="sk-your-openai-key-here"
 ```
 
 ## Step 3: Create Your First AI Program
 
-Create a file called `main.go`:
+Create a file called `main.go`. Choose the provider that matches your setup from Step 2:
+
+**Option A — Ollama (local):**
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    agentdomain "github.com/lexlapax/go-llms/pkg/agent/domain"
+    "github.com/lexlapax/go-llms/pkg/agent/core"
+    "github.com/lexlapax/go-llms/pkg/llm/provider"
+)
+
+func main() {
+    // No API key needed — requires Ollama running on localhost:11434
+    p := provider.NewOllamaProvider("llama3.2:3b")
+
+    agent := core.NewLLMAgent("assistant", "A helpful AI assistant", core.LLMDeps{
+        Provider: p,
+    })
+    agent.SetSystemPrompt("You are a helpful assistant.")
+
+    state := agentdomain.NewState()
+    state.Set("user_input", "Hello! What can you help me with today?")
+
+    result, err := agent.Run(context.Background(), state)
+    if err != nil {
+        log.Fatal("Error running agent:", err)
+    }
+
+    if response, exists := result.Get("response"); exists {
+        fmt.Println("User: Hello! What can you help me with today?")
+        fmt.Println("AI:", response)
+    }
+}
+```
+
+**Option B — OpenAI (cloud):**
 
 ```go
 package main
@@ -56,34 +107,26 @@ import (
 )
 
 func main() {
-    // Get API key from environment
     apiKey := os.Getenv("OPENAI_API_KEY")
     if apiKey == "" {
         log.Fatal("Please set OPENAI_API_KEY environment variable")
     }
-    
-    // Create a provider
-    openaiProvider := provider.NewOpenAIProvider(apiKey, "gpt-4")
-    
-    // Create an agent
+
+    p := provider.NewOpenAIProvider(apiKey, "gpt-4o")
+
     agent := core.NewLLMAgent("assistant", "A helpful AI assistant", core.LLMDeps{
-        Provider: openaiProvider,
+        Provider: p,
     })
-    
-    // Set system prompt
     agent.SetSystemPrompt("You are a helpful assistant.")
-    
-    // Create state with user input
+
     state := agentdomain.NewState()
     state.Set("user_input", "Hello! What can you help me with today?")
-    
-    // Run the agent
+
     result, err := agent.Run(context.Background(), state)
     if err != nil {
         log.Fatal("Error running agent:", err)
     }
-    
-    // Get and print the response
+
     if response, exists := result.Get("response"); exists {
         fmt.Println("User: Hello! What can you help me with today?")
         fmt.Println("AI:", response)
@@ -138,19 +181,28 @@ agent.SetSystemPrompt("You are a expert Go programming tutor. Always provide cod
 
 ### Try a Different Provider
 
+Switch to Ollama (local, no API key):
+
+```go
+// Requires Ollama running locally: https://ollama.com
+// Pull any model first: ollama pull mistral:7b
+ollamaProvider := provider.NewOllamaProvider("mistral:7b")
+
+agent := core.NewLLMAgent("assistant", "A helpful AI assistant", core.LLMDeps{
+    Provider: ollamaProvider,
+})
+```
+
 Switch to Claude (Anthropic):
 
 ```go
-// Get Anthropic API key
 anthropicKey := os.Getenv("ANTHROPIC_API_KEY")
 if anthropicKey == "" {
     log.Fatal("Please set ANTHROPIC_API_KEY environment variable")
 }
 
-// Create Anthropic provider
 anthropicProvider := provider.NewAnthropicProvider(anthropicKey, "claude-3-sonnet-20240229")
 
-// Use in agent
 agent := core.NewLLMAgent("assistant", "A helpful AI assistant", core.LLMDeps{
     Provider: anthropicProvider,
 })

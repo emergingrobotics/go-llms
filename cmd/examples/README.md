@@ -29,6 +29,22 @@ go build -o example .
 ./example [args...]
 ```
 
+### No API Key? Start Here
+
+Two examples require no cloud API key:
+
+- **`simple/`** — uses a mock provider, runs completely offline
+- **`provider-ollama/`** — uses a real local model via [Ollama](https://ollama.com)
+
+```bash
+# Option 1: mock provider (no model download needed)
+cd simple && go run main.go
+
+# Option 2: Ollama (install from https://ollama.com, then:)
+ollama pull llama3.2:3b
+cd provider-ollama && go run main.go
+```
+
 ## Available Examples
 
 ### Basic Usage
